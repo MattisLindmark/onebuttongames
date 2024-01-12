@@ -65,7 +65,6 @@ function update() {
       // rnd( min, max )
       const posX = rnd(0, G.WIDTH);
       const posY = rnd(0, G.HEIGHT);
-      // An object of type Star with appropriate properties
       return {
         // Creates a Vector
         pos: vec(posX, posY),
@@ -122,7 +121,7 @@ function update() {
   }
   if (loadingTime > 120){
     color("black");
-    text("you loose!", 25, 70);
+    text("you looose!", 25, 70);
     reset();
     end("");
   }
