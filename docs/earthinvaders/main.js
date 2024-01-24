@@ -65,15 +65,20 @@ const player = {
   speed: .5,
   sprite: "a",
   plc: null,
-  canShoot: true
+  canShoot: false
 };
 
 let timeToShoot = false;
-let shootchane = 50;
-let reloadTime = 40;
+//let shootchane = 50;
+//let reloadTime = 40;
 let collision = null;
 let baseSpeed = 1;
 let currentSpeed = baseSpeed;
+
+let nextShotPosition = 0;
+let shootingItterationCount = 0;
+
+let debuggItterations = 0;
 
 let laserbeam = {
   pos: vec(0, 0),
@@ -110,9 +115,17 @@ function update() {
 
   //test();
   handleShots();
-  playerMoveAndDraw();
+  playerMoveAndDraw(); // <- this one also handles the random shoot position
   enemyMoveAndDraw();
   checkCollisions();
+
+  // value from 0 to 100 that reach 100 when itterationCount == nextShotPosition
+  if (player.canShoot) {
+  let tmp = Math.floor((shootingItterationCount / nextShotPosition) * 10);
+  bar(player.pos.x, G.HEIGHT-6, 11-tmp, 1, 0);
+//  text("shoot: " + tmp , 3, 40);
+// text("pl:"+enemies.length , 3, 40);
+  }
 }
 
 function HandleReloadState() {
@@ -121,32 +134,45 @@ function HandleReloadState() {
     return;
   }
 
+  if (shootingItterationCount < nextShotPosition) {
+    shootingItterationCount++;
+    return;
+  }
+  debuggItterations = shootingItterationCount;
+  shootingItterationCount = 0;
+  timeToShoot = true;
+  
+  /*
   if (ticks % reloadTime == 0) {
     if (rnd(0, 100) < shootchane) {
       timeToShoot = true;
     }
   }
-
-/*
-  if (ticks % reloadTime == 0) {
-    reloadTime = Math.floor(rnd(6, 17)) * 10;
-    console.log(reloadTime);
-    timeToShoot = true;
-  }
 */
 }
 
-function NextLevel() {
+function NextLevel(bonuspoint = 0) {
   enemy.hp = 1;
-  score += 10;
-  reloadTime -= 5;
-  shootchane += 5;
+  score += 10 + bonuspoint;
+  //reloadTime -= 5;
+  //shootchane += 5;
   player.speed = Math.abs(player.speed) + 0.2;
-  player.canShoot = true;
+  if (player.speed > 4 || player.speed < 0) {
+    player.speed = 4;
+  }
+  // i want playerspeed to be rounded to 2 decimals.
+  player.speed = Math.round(player.speed * 100) / 100;
+  console.log("player.speed: " + player.speed);
+  //player.canShoot = true;
 
   laserBeams.forEach((laser) => {
     laser.status = "ready";
   });
+
+  baseSpeed += 0.1;
+  if (baseSpeed > 1.5) {
+    baseSpeed = 1.5;
+  }
 
 //  enemy.pos = vec(G.WIDTH, 15);
 //  enemy.step = 0;
@@ -173,7 +199,7 @@ function handleShots() {
 
     if (laser.status == "fired") {
       laser.pos.y -= laser.speed;
-      laser.char = char("c", laser.pos, { scale: { x: 1, y: 2 } });
+      laser.char = char("c", laser.pos, { scale: { x: 1, y: 0.5+difficulty } });
       if (laser.pos.y < 10) {
         play("coin", { volume: 0.4 });
         score ++;
@@ -188,10 +214,10 @@ function fullReset() {
   console.log("fullReset");
   resetEverything();
   score = 0;
-  reloadTime = 40;
-  shootchane = 50;
-  player.speed = .5;
-  player.canShoot = true;
+  //reloadTime = 40;
+  //shootchane = 50;
+  player.speed = 0.5;
+  player.canShoot = false;
   baseSpeed = 1;
   currentSpeed = baseSpeed;
 }
@@ -353,12 +379,18 @@ function checkCollisions() {
     play("lucky");
 
     inTransition = true;
+
+    let bonus = Math.round(enemies.length * difficulty);
+
     transistionFunc = () => {
       color("red");
       particle(player.pos, 10, 1);
       color("light_green");
       rect(0, G.HEIGHT - 7, G.WIDTH, 10);
       color("black");
+      text("Invaders: "+enemies.length, 10, 50);
+      text("Bonus: "+ bonus , 10, 60);
+//      text("Dificulty"+ difficulty, 10, 70);
 
 //            text("GAME OVER\nFOR THE HUMANS!", 30, 50);
       //  if (input.isJustPressed) {
@@ -366,7 +398,7 @@ function checkCollisions() {
       //        resetEverything();
       //     }
     };
-    setTimeout(() => { inTransition = false; NextLevel() }, 1000);
+    setTimeout(() => { inTransition = false; NextLevel(bonus) }, 1000);
     resetEnemys();
     //resetEverything();
 
@@ -381,6 +413,7 @@ function playerMoveAndDraw() {
   if (player.pos.x > G.WIDTH-10 || player.pos.x < 10) {
     player.speed *= -1;
     player.canShoot = true;
+    calculateItterations();
   }
 
 
@@ -396,6 +429,22 @@ function playerMoveAndDraw() {
   color("black");
 }
 
+function calculateItterations() {
+  let boundary = player.speed > 0 ? G.WIDTH - 10 : 10;
+  let distance = Math.abs(player.pos.x - boundary);
+  let itterations = Math.floor(distance / player.speed);
+
+  let tmp = Math.abs(itterations);
+  nextShotPosition = Math.round(rnd(2, tmp));
+  debuggItterations = nextShotPosition;
+//  console.log("nextShotPosition: " + nextShotPosition);
+  //itterations = 0;
+
+//  reloadTime = itterations;
+//  console.log("reloadTime: " + reloadTime);
+  //console.log("itterations: " + itterations);
+
+}
 
 function resetEverything() {
   // enemy.hp = 1;
@@ -403,6 +452,8 @@ function resetEverything() {
   // enemy.step = 0;
   // enemy.speed = 1;
   // enemy.value = 10;
+
+  // XXX TODO: remove?
   player.pos = vec(G.WIDTH / 2, G.HEIGHT - 10);
   player.speed = player.speed;
   laserbeam.status = "ready";
