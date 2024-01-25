@@ -1,0 +1,86 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-image: url('img/banner.jpg');
+    background-size: cover;
+    background-position: center;
+    background-color:  #2A4765;    
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+main {
+    max-width: 1200px;
+    margin: 10px auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(300px, 2fr)); /*repeat(auto-fit, minmax(250px, 1fr)); */ 
+    gap: 20px;
+    
+}
+
+.item {
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    padding-top: 15px;
+    padding-bottom: 10px;
+    text-align: center;
+    transition: background-color 0.3s ease; /* Lägg till en övergångseffekt för bakgrundsfärgen */
+}
+
+.item:hover {
+    background-color: #e0e0e0; /* Ljusare färg vid hover */
+}
+
+.item img {
+    width: 300px;
+    height: 225px;
+    object-fit: cover;
+}
+
+.item h2 {
+    margin-top: 10px;
+    font-size: 1.2em;
+}
+
+.item p {
+    margin-top: 5px;
+    font-size: 0.9em;
+}
+
+.play-button {
+    width: 20%;
+    height: 20px;
+    background-color: #6abd5f;
+    border-radius: 7px;
+    margin: 0 auto;
+    display: flex;
+    padding: 4px;
+    justify-content: center;
+    align-items: center;
+    color: rgb(248, 242, 242); /* Make the text white */
+    font-weight: bold; /* Make the text bold */
+    transition: background-color 0.3s ease; /* Add a transition effect for the background color */
+}
+
+.item a {
+    text-decoration: none; /* Ta bort standard understrykning för länkar */
+    color: inherit; /* Ärva textfärg från föräldern */
+    display: block; /* Göra hela rutan klickbar */
+}
+.play-button:hover {
+    background-color: #91eb81; /* Darken the background color on mouse-over */
+    color: rgb(151, 151, 151);
+}
+
+
+
+
+h1 {
+    margin: 0;
+}

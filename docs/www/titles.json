@@ -1,0 +1,24 @@
+{
+    "games": [
+      {
+        "title": "ZpaceInvader",
+        "folderName": "spaceinvader",
+        "description": "Shoot the invaders."
+      },
+      {
+        "title": "EarthInvaderz",
+        "folderName": "earthinvaders",
+        "description": "Invade the shooter."
+      },
+      {
+        "title": "AntonZleeep",
+        "folderName": "antonzleep",
+        "description": "Wake up in time!"
+      },
+      {
+        "title": "Dockerhell",
+        "folderName": "dockerhell",
+        "description": "Install docker. Or not."
+      }
+    ]
+  }
