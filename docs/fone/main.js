@@ -82,6 +82,6 @@ function drawTrack2() {
 
 
   // Update the angle
-  angle += speed;
+  angle += speed * 2;
 
 }
