@@ -1,0 +1,99 @@
+title = "Rock\n Paper\n  Scissors";
+
+description = `you know the rules,\nand so do I
+`;
+
+characters = [];
+
+const G = {
+  WIDTH: 200,
+  HEIGHT: 200
+};
+
+options = {
+  viewSize: {x: G.WIDTH, y: G.HEIGHT},
+  isPlayingBgm: true,
+  //isReplayEnabled: true,
+  seed: 15,
+//  theme: "dark",
+};
+
+class Choice {
+  constructor(name, weakness) {
+    this.name = name;
+    this.weakness = weakness;
+  }
+}
+
+const rock = new Choice("rock");
+const paper = new Choice("paper");
+const scissors = new Choice("scissors");
+
+rock.weakness = paper;
+paper.weakness = scissors;
+scissors.weakness = rock;
+
+const PossibleChoices = [rock, paper, scissors];
+let playerChoice = rock;
+let computerChoice = rock;
+
+let text1="Text1";
+let text2="Text2 ";
+
+function update() {
+  if (!ticks) {
+    init();   
+  }
+
+  color("light_black");
+  rect(0, 0, G.WIDTH, G.HEIGHT);
+  color("black");
+  rect(0, 0, G.WIDTH, 10);
+  rect(0, 0, 10, G.HEIGHT);
+  rect(0, G.HEIGHT-10, G.WIDTH, 10);
+  rect(G.WIDTH-10, 0, 10, G.HEIGHT);
+  color("white");
+  text("Score: "+score, 3, 10);
+  text("Rock", 25, 80);
+  text("Paper", 75, 80);
+  text("Scissors", 125, 80);
+  text(text1, 25, 20);
+  text(text2, 25, 30);
+  color("red");
+  text("Rock", 25, 80);
+  color("green");
+  text("Paper", 75, 80);
+  color("blue");
+  text("Scissors", 125, 80);
+  color("white");
+  text("Rock", 25, 80);
+  text("Paper", 75, 80);
+  text("Scissors", 125, 80);
+  color("black");
+
+
+
+
+  if (input.isJustPressed) {
+    playerChoice = PossibleChoices[parseInt(input.pos.x/50)];
+    computerChoice = PossibleChoices[parseInt(Math.random()*3)];
+    if (playerChoice.weakness == computerChoice) {
+      text1 = "You win LOOOSE!"+playerChoice.name;
+      text2 = "Computer chose!"+computerChoice.name;
+      score--;
+    } else if (computerChoice.weakness == playerChoice) {
+      text1 = "You WIIIN with!"+playerChoice.name;
+      text2 = "Computer chose!"+computerChoice.name;
+      score++;
+    } else {
+      text1 = "You both chose!"+playerChoice.name;
+      text2 = "Computer chose!"+computerChoice.name;
+    }
+  }
+
+}
+
+function init() {
+  
+}
+
