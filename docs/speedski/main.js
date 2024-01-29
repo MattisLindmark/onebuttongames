@@ -39,6 +39,7 @@ options = {
   //isPlayingBgm: true,
   isReplayEnabled: true,
   seed: 1,
+  isShowingScore: false
 };
 /*
 * @typedef { object } player - It is a rock.
@@ -58,6 +59,9 @@ let gateDistance = Math.floor(trackLength / numerOfGates);
 let gateWidth = 30;
 let goal = { pos: vec(G.WIDTH/2, trackLength+gateDistance) }; // Add gate distance to make sure all goals is before goal.
 
+let gateScore = 0;
+let gatePenelty = 1.5;
+
 let trees = [];
 let skiTrack = [];
 let gates= [];
@@ -67,6 +71,12 @@ let GLOBAL_PAUSE = false;
 let skeespeed = -1;
 let trackTimer;
 
+let ScoreBoard = {
+  lastTime: 100000,
+  bestTime: 100000,
+  newLastTime: 100000
+};
+
 let StartValues = {
   skeespeed: -1,
   playerSpeed: 1,
@@ -75,7 +85,7 @@ let StartValues = {
   trackLength: 1500,
   numerOfGates: 5,
   gateWidth: 30
-}
+};
 
 function fullReset() {
   trees = [];
@@ -83,6 +93,7 @@ function fullReset() {
   skeespeed = -1;
   console.log("reset");
   goal = { pos: vec(G.WIDTH/2, trackLength+gateDistance) };
+  gateScore = 0;
 }
 
 //
@@ -90,15 +101,15 @@ function fullReset() {
 //
 
 function update() {
-  if (!ticks) {
+  if (!ticks) {   
     trackTimer = 0;
     fullReset();
     init();
   }
+
   // white rect over screen
   color("white");
-  rect(0, 0, G.WIDTH, G.HEIGHT);
-  
+  rect(0, 0, G.WIDTH, G.HEIGHT);  
   if (GLOBAL_PAUSE) {
     skeespeed = 0;
     player.speed = 0;    
@@ -109,9 +120,13 @@ function update() {
   drawStuff();
   getReadyScreen();
 
-  text("Time: " + trackTimer.toFixed(2), G.WIDTH/2-5, 10);
+  color("black");
+  text("Time:\n" + trackTimer.toFixed(2), (G.WIDTH/2)-30, 10);
   trackTimer += 1/60;
-
+  if (ScoreBoard.lastTime < 100000) {
+  text("Best\n" + ScoreBoard.bestTime, (G.WIDTH)-50, 10);  
+  text("Last\n" + ScoreBoard.lastTime, 10, 10);
+  }
   /*
   if (ticks % 100 == 0) {    
     play("click", {pitch: -2000, volume: 0.3, note: "c"});
@@ -126,7 +141,43 @@ function update() {
 
 }
 
+function beginComplete() {
+  let tmp = trackTimer.toFixed(3);
+  let gatesMissed = numerOfGates - gateScore;
+  let total = ((tmp*1)+(gatesMissed*gatePenelty));
+
+  color("white");
+  rect(30, 80, G.WIDTH-50, G.HEIGHT-200);
+  color("cyan");
+  text("FINISH!", 50, 77, {scale: {x: 2, y: 2}});
+  color("black");
+  text("Time:"+tmp, 50, 90, {scale: {x: 1, y: 1}});
+  text("Missed Gates:"+gatesMissed, 50, 100, {scale: {x: 1, y: 1}});
+  text("TimePenelty:"+gatesMissed*gatePenelty, 50, 110, {scale: {x: 1, y: 1}});
+  color("blue");
+  text("Total:"+(total).toFixed(3), 50, 122, {scale: {x: 1, y: 1}});  
+  if (total < ScoreBoard.bestTime) {
+    color("red");
+    text("New Record!", 48, 135, {scale: {x: 2, y: 2}});
+    color("black");
+    ScoreBoard.bestTime = total;
+  } else if (total < ScoreBoard.lastTime) {
+    color("red");
+    text("Better then\n last time!", 50, 135, {scale: {x: 1, y: 1}});
+    color("black");
+  }
+  ScoreBoard.newLastTime = total;
+
+
+  
+  play("lucky");
+  complete("good job!");
+}
+
 function getReadyScreen() {
+  if (!ticks || ticks < 1){
+    return; 
+  }
   if (GLOBAL_PAUSE) {
     trackTimer = 0;
   }
@@ -164,6 +215,9 @@ function getReadyScreen() {
 }
 
 function init() {
+  if (ScoreBoard.newLastTime != ScoreBoard.lastTime) { // Workaround to keep last time until restart.
+    ScoreBoard.lastTime = ScoreBoard.newLastTime;
+  }
   // Setup Player -------
   player = {
     pos: vec(100, 120),
@@ -246,7 +300,7 @@ function drawStuff() {
     let col = line(0, goal.pos.y, G.WIDTH, goal.pos.y, 3);
     if (col.isColliding.char.a) {
       play("powerUp");
-      complete();      
+      beginComplete();      
     }
   }
 
@@ -262,6 +316,7 @@ function drawStuff() {
 
       if (col.isColliding.char.a && !g.hascollided) {
         score += 1;
+        gateScore += 1;
         play("coin");
         g.hascollided = true;
       }
@@ -284,6 +339,7 @@ function drawStuff() {
 
 
 function drawPlayer() {
+  drawSkitracks(); // Draw the tracks first to avoid drifting when colliding with trees due to ... stuff.
 
   // player movement
   if (input.isJustPressed) {
@@ -316,32 +372,6 @@ function drawPlayer() {
     player.speed = 0;
   }
 
-
-  // Add a point to the ski track every 10 pixels of movement
-  let lastPoint = skiTrack[skiTrack.length - 1];
-  if (Math.abs(player.pos.y - lastPoint.y) > 10) {
-    skiTrack.push({ x: player.pos.x, y: player.pos.y,dir: player.direction });
-  }
-
-  // Move the ski track up at the same speed as the player
-  skiTrack.forEach(point => point.y += skeespeed);
-
-  // Remove points that have moved off the screen
-//  let tmp = skiTrack.length;  
-  skiTrack = skiTrack.filter(point => point.y >= 0);
-//  if (skiTrack.length < tmp) {
-//    console.log("removed " + (tmp - skiTrack.length) + " points");
-//  }
-
-  // Draw the ski track
-  color("light_blue");
-  for(let i = 1; i < skiTrack.length; i++) {
-    line(skiTrack[i-1].x, skiTrack[i-1].y, skiTrack[i].x, skiTrack[i].y, 2);
-    //let tt = skiTrack[i].dir ? "\\\\" : "//";
-    //text(tt, skiTrack[i-1].x, skiTrack[i-1].y, {scale: {x: 2, y: 2}});
-  }
-
-
   // player sprite
   color("blue");
   let mirror = player.direction ? 1 : -1;
@@ -349,11 +379,11 @@ function drawPlayer() {
 
   // player speed indicator
   color("black");
-  rect(0, 10, player.speed * 10, 3);
-  rect(0, 14, Math.abs(skeespeed) * 10, 3);
+  rect(0, 20, player.speed * 10, 3);
+  rect(0, 24, Math.abs(skeespeed) * 10, 3);
   // debug info
-  color("black");
-  text('track: ' + skiTrack.length, 3, 10);
+  // color("black");
+  // text('track: ' + skiTrack.length, 3, 10);
 
   // check for collisions
   if (plCol.isColliding.char.b) {
@@ -369,15 +399,44 @@ function drawPlayer() {
 
 }
 
-function drawTrees() {
+function drawSkitracks() {
+  // Add a point to the ski track every 10 pixels of movement
+let lastPoint = skiTrack[skiTrack.length - 1];
+if (Math.abs(player.pos.y - lastPoint.y) > 10) {
+  //let newY = lerp(lastPoint.y, player.pos.y, 0.5);
+  skiTrack.push({ x: player.pos.x, y: player.pos.y,dir: player.direction });
+}
 
+// Move the ski track up at the same speed as the player
+skiTrack.forEach(point => point.y += skeespeed);
+
+// Remove points that have moved off the screen
+//  let tmp = skiTrack.length;  
+skiTrack = skiTrack.filter(point => point.y >= 0);
+//  if (skiTrack.length < tmp) {
+//    console.log("removed " + (tmp - skiTrack.length) + " points");
+//  }
+
+// Draw the ski track
+color("light_blue");
+for(let i = 1; i < skiTrack.length; i++) {
+  line(skiTrack[i-1].x, skiTrack[i-1].y, skiTrack[i].x, skiTrack[i].y, 2);
+  //let tt = skiTrack[i].dir ? "\\\\" : "//";
+  //text(tt, skiTrack[i-1].x, skiTrack[i-1].y, {scale: {x: 2, y: 2}});
+}
+}
+
+function lerp(start, end, t) {
+  return start * (1 - t) + end * t;
+}
+
+function drawTrees() {
   trees.forEach((t) => {
     t.pos.y += skeespeed;
 //    color("green");
 //    char("a", t.pos);
     color("green");
     char(t.sprite,t.pos.x, t.pos.y, { scale: { x: 2, y: 3 } });
-
 
 
     if (t.pos.y < 0) {
