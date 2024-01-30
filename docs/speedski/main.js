@@ -1,6 +1,7 @@
-title = "";
+title = "===> SpeedSkii <===";
 
-description = `
+description = `Press to turn\nHold to go faster.\n\n
+Based on the game\nSpeedski for Vic20\n
 `;
 
 characters = [
@@ -39,7 +40,11 @@ options = {
   //isPlayingBgm: true,
   isReplayEnabled: true,
   seed: 1,
-  isShowingScore: false
+  isShowingScore: false,
+//  isShowingTime: true,
+  //isCapturing: true,
+  //captureCanvasScale: 1,
+  //isCapturingGameCanvasOnly: true
 };
 /*
 * @typedef { object } player - It is a rock.
@@ -67,6 +72,7 @@ let skiTrack = [];
 let gates= [];
 
 let GLOBAL_PAUSE = false;
+let IS_REPLAYING = false;
 
 let skeespeed = -1;
 let trackTimer;
@@ -101,24 +107,32 @@ function fullReset() {
 //
 
 function update() {
-  if (!ticks) {   
+  if (!ticks) {
     trackTimer = 0;
     fullReset();
     init();
+    sss.setSeed(options.seed);
   }
 
-  // white rect over screen
-  color("white");
-  rect(0, 0, G.WIDTH, G.HEIGHT);  
+    // white rect over screen
+    color("white");
+  rect(0, 0, G.WIDTH, G.HEIGHT);
   if (GLOBAL_PAUSE) {
     skeespeed = 0;
     player.speed = 0;    
   }
-
+  
   drawTrees();
   drawPlayer();
   drawStuff();
   getReadyScreen();
+  
+  if (isReplaying) {
+    color("light_red");
+    if (ticks % 60 > 20) {
+      text("R", G.WIDTH-45, 35, { scale: { x: 5, y: 6 } });
+    }
+  }
 
   color("black");
   text("Time:\n" + trackTimer.toFixed(2), (G.WIDTH/2)-30, 10);
@@ -135,10 +149,6 @@ function update() {
 
   }
   */
-
-
-
-
 }
 
 function beginComplete() {
@@ -181,14 +191,14 @@ function getReadyScreen() {
   if (GLOBAL_PAUSE) {
     trackTimer = 0;
   }
-  
-   if (ticks == 0 || ticks == 55) {
-     play("select", {freq: 350});
-   }
-   if (ticks == 115) {
-     play("select", {freq: 460});
-   }
-
+  if (!isReplaying) {
+    if (ticks == 1 || ticks == 55) {
+      play("select", { freq: 350 });
+    }
+    if (ticks == 115) {
+      play("select", { freq: 460 });
+    }
+  }
 
   if (ticks < 60) {    
     GLOBAL_PAUSE = true;
@@ -326,6 +336,9 @@ function drawStuff() {
   // a light_red line at left and right side of the screen.
   color("light_red");
   let tmp = ticks % 10;
+  if (GLOBAL_PAUSE){
+    tmp = 0;
+  }
   let col1 = line(1, tmp, 1, G.HEIGHT-tmp, 4);
   let col2 = line(G.WIDTH-1, tmp, G.WIDTH-1, G.HEIGHT-tmp, 4);
 
@@ -358,13 +371,15 @@ function drawPlayer() {
   // Variable speed if not holding. We'll see if it's good.
   if (input.isPressed) {
     player.speed += 0.1;
-    skeespeed -= 0.04;
+    skeespeed -= 0.02;
   } else {
     player.speed -= 0.1;
-    skeespeed += 0.02;
+    skeespeed += 0.03;
   }
+
+  // NOtes: skeespeed: -0.04 |> +0.02 = värdena jag hade innan.
   player.speed = clamp(player.speed, 1, 3);
-  skeespeed = clamp(skeespeed, -2, -1); // XXX TODO: make min max speed constants
+  skeespeed = clamp(skeespeed, -2.5, -1); // XXX TODO: make min max speed constants
 
   if (GLOBAL_PAUSE)
   {
@@ -431,13 +446,27 @@ function lerp(start, end, t) {
 }
 
 function drawTrees() {
+
+  // due to when everything is drawn ans suff we need to draw a transparent rectangel at every gate to avoid  trees in that area.
+  gates.forEach((g) => {
+    color("blue");
+    rect(g.pos.x-10, g.pos.y-15, gateWidth+20, 30);
+    color("white");
+    rect(g.pos.x-10, g.pos.y-15, gateWidth+20, 30);
+  });
+
   trees.forEach((t) => {
     t.pos.y += skeespeed;
 //    color("green");
 //    char("a", t.pos);
     color("green");
-    char(t.sprite,t.pos.x, t.pos.y, { scale: { x: 2, y: 3 } });
+    let col = char(t.sprite,t.pos.x, t.pos.y, { scale: { x: 2, y: 3 } });
 
+     if (col.isColliding.rect.blue) {
+       // move tree 10 down.
+      // play("hit");
+       t.pos.x += 100;
+     }
 
     if (t.pos.y < 0) {
       t.pos.y = G.HEIGHT+rnd(0, 100);
