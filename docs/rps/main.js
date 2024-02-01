@@ -37,9 +37,10 @@ const Sprites = ["a","b","c"];
 
 options = {
   viewSize: {x: G.WIDTH, y: G.HEIGHT},
-  isPlayingBgm: true,
+  //isPlayingBgm: true,
   //isReplayEnabled: true,
   seed: 15,
+  isShowingScore: false,
 //  theme: "dark",
 };
 
@@ -72,10 +73,14 @@ let text2="Text2 ";
 let computerScore = 0;
 let stateFunc = selectState;
 
+let randomTargetAngle;
+
 //let DissregardFirstButtonPress = true;
 
 function update() {
   if (!ticks) {
+    // Generate a random angle in radians (0 to 2π), equivalent to 0 to 360 degrees
+    randomTargetAngle = Math.random() * 2 * Math.PI;
     init();   
   }
   
@@ -146,6 +151,7 @@ function selectState() {
   char(PossibleChoices[currentIndex].sprite, G.WIDTH/2, y, {scale: charScale});
 
   if (input.isJustPressed) {
+    playerChoice = PossibleChoices[currentIndex];
     let tmp = 0;
     stateFunc = () => {
       tmp ++;
@@ -155,6 +161,7 @@ function selectState() {
         stateFunc = computerSelectionState;
       }
     };
+
 /*
     stateFunc = () => {
         // move Y towards center
@@ -201,18 +208,21 @@ function computerSelectionState() {
   
   drawCharactersInCircle();
   // a bar that rotates in the middle of the screen
-  color("black");
-  text("Computer is choosing", 50, 20);
-  color("red");
-  //bar(G.WIDTH/2, G.HEIGHT/2, 50, 2, ticks/10 % 360,0);
-  color("black");
-  //text(" "+computerChoice.name,G.WIDTH/2-25, G.CPOS_Y);
-  //char(computerChoice.sprite, G.WIDTH/2, 40, {scale: {x: 4, y: 4}});
+  color("green");
+  text("Humans\nchoice:", 10, 25);
+  char(playerChoice.sprite, 65, 25, {scale: {x: 4, y: 4}});
+  
+  color("cyan");
+  text("AIs\nchoice:", G.WIDTH/2+5, 25);
+  
 
 }
 
-let tmpSpeed = rnd(0.1,1.5);
-let l = 0;
+let tmpSpeed = 1;// rnd(0.09,0.4); <- can be used to randomize a bit more, but might give problem with end sequence
+let l = 1;
+let firstCollision = true;
+
+
 
 function drawCharactersInCircle() {
   let characters = ['a', 'b', 'c', 'a', 'b', 'c']; // Repeat characters
@@ -229,8 +239,61 @@ function drawCharactersInCircle() {
   }
   
   l=l+tmpSpeed;
-  let col = bar(G.WIDTH/2, G.HEIGHT/2, l, 2, ticks/10 % 360,0);
-  
+//  let col = bar(G.WIDTH/2, G.HEIGHT/2, l, 3, ticks/10 % 360,0);
+
+// Define the total duration of the rotation in ticks
+const totalDuration = 500; // Adjust this value as needed
+
+// Calculate the progress of the rotation from 0 to 1
+let progress = Math.min(l / totalDuration, 1);
+
+// Apply the ease in out cubic function
+let easedProgress;
+//if (progress < 0.5) {
+//  easedProgress = 4 * Math.pow(progress, 3);
+//} else {
+  easedProgress = 1 - Math.pow(-2 * progress + 2, 3) / 2;
+//}
+
+// Define the maximum rotation speed
+const maxSpeed = 4; // Adjust this value as needed
+let angle = easedProgress * randomTargetAngle* maxSpeed;
+let col = bar(G.WIDTH/2, G.HEIGHT/2, 50, 4, angle, 0);
+
+//text("l "+l, 50, 50);
+
+  if (col.isColliding.char.a || col.isColliding.char.b || col.isColliding.char.c) {
+   if (firstCollision) {
+      //play("jump");
+      firstCollision = false;
+   }
+    if (col.isColliding.char.a) {
+      computerChoice = rock;
+    } else if (col.isColliding.char.b) {
+      computerChoice = paper;
+    } else if (col.isColliding.char.c) {
+      computerChoice = scissors;
+    }
+  } else {
+    firstCollision = true;
+  }
+
+
+  char(computerChoice.sprite, G.WIDTH-40, 25, {scale: {x: 4, y: 4}});
+
+  if (l > totalDuration+100) {
+    stateFunc = displayResultState;
+  } else if (l > totalDuration) {
+    color("red");    
+    bar(G.WIDTH/2, G.HEIGHT/2, 50, 5, randomTargetAngle * maxSpeed, 0);
+    color("black");
+    text(computerChoice.name, G.WIDTH-45, 40);
+  }
+
+   
+
+//  let col = bar(G.WIDTH/2, G.HEIGHT/2, 55, 3, ticks/10 % 360,0);
+  /*
   if (col.isColliding.char.a || col.isColliding.char.b || col.isColliding.char.c) {
     tmpSpeed = 0;
     if (col.isColliding.char.a) {
@@ -243,16 +306,61 @@ function drawCharactersInCircle() {
 
     stateFunc = displayResultState;
   }
+  */
 
 }
+let progress = 0;
+const totalDuration = 500;
 
 function displayResultState() {
-  color("black");
-  text("Result"+computerChoice.name, 50, 20);
-  char(computerChoice.sprite, G.WIDTH/2, 40, {scale: {x: 4, y: 4}});
+  let PLstartPos = vec(65,25);
+  let PLendPos = vec(65,60);
+  
+  progress = Math.min(progress + 0.01, 1);
+  let vecPos = easeVec(PLstartPos, PLendPos, progress);
+  color("green");
+  text("Humans\nchoice:", 10, 25);
+  char(playerChoice.sprite, vecPos, {scale: {x: 4, y: 4}});
+
+
+
+
+  color("green");
+  text("Humans\nchoice:", 10, 25);
+  char(playerChoice.sprite, 65, 25, {scale: {x: 4, y: 4}});
+  
+  color("cyan");
+  text("AIs\nchoice:", G.WIDTH/2+5, 25);
+  char(computerChoice.sprite, G.WIDTH-40, 25, {scale: {x: 4, y: 4}});
  
 }
 
+function lerpVec(from, to, t) {
+  return vec(
+    from.x + (to.x - from.x) * t,
+    from.y + (to.y - from.y) * t
+  );
+}
+
+function lerp(from, to, t) {
+  return from + (to - from) * t;
+}
+
+function easeVec(from, to, t, duration) {
+  // Calculate the eased progress using an ease in out cubic function
+  let easedT;
+  if (t < 0.5) {
+    easedT = 4 * t * t * t;
+  } else {
+    easedT = (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+  }
+
+  // Calculate the current position using linear interpolation
+  return vec(
+    from.x + (to.x - from.x) * easedT,
+    from.y + (to.y - from.y) * easedT
+  );
+}
 
 // let fastSpinDuration = Math.random() * 4 + 1; // Random number between 1 and 5
 // let startTicks = ticks;
@@ -331,4 +439,15 @@ function selectState() {
 //  char(PossibleChoices[currentIndex].sprite, G.WIDTH/2, 40, {scale: {x: 4, y: 4}});
 }
 
+
+==== Old rotation code ==== (20240131)
+const totalDuration = 500; // Adjust this value as needed
+//Smooth rotation
+let progress = Math.min(l / totalDuration, 1);
+let easedProgress = 1- Math.pow(1-progress, 3);
+let angle = easedProgress * 360;
+let col = bar(G.WIDTH/2, G.HEIGHT/2, 55, 3, angle, 0);
+
+
 */
+
