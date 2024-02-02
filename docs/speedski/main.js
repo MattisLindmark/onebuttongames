@@ -41,6 +41,8 @@ options = {
   isReplayEnabled: true,
   seed: 1,
   isShowingScore: false,
+  theme: "shape",
+
 //  isShowingTime: true,
   //isCapturing: true,
   //captureCanvasScale: 1,
@@ -59,7 +61,7 @@ let player;
 let tree;
 let trackLength = 1500;
 let gate = { pos: vec(0,0) };
-let numerOfGates = 5;
+let numerOfGates = 10;
 let gateDistance = Math.floor(trackLength / numerOfGates);
 let gateWidth = 30;
 let goal = { pos: vec(G.WIDTH/2, trackLength+gateDistance) }; // Add gate distance to make sure all goals is before goal.
@@ -67,6 +69,7 @@ let goal = { pos: vec(G.WIDTH/2, trackLength+gateDistance) }; // Add gate distan
 let gateScore = 0;
 let gatePenelty = 1.5;
 
+let numberOfTrees = 10;
 let trees = [];
 let skiTrack = [];
 let gates= [];
@@ -89,7 +92,8 @@ let StartValues = {
   playerMaxSpeed: 1,
   playerDirection: true,
   trackLength: 1500,
-  numerOfGates: 5,
+  numerOfGates: 10,
+  numberOfTrees: 10,
   gateWidth: 30
 };
 
@@ -113,9 +117,9 @@ function update() {
     init();
     sss.setSeed(options.seed);
   }
-
-    // white rect over screen
-    color("white");
+  
+  // white rect over screen
+  color("white");
   rect(0, 0, G.WIDTH, G.HEIGHT);
   if (GLOBAL_PAUSE) {
     skeespeed = 0;
@@ -149,6 +153,7 @@ function update() {
 
   }
   */
+
 }
 
 function beginComplete() {
@@ -242,7 +247,7 @@ function init() {
     pos: vec(100, 100),
     sprite: "b"
   };
-  trees = times(10, () => {
+  trees = times(numberOfTrees, () => {
     return {
       pos: vec(rnd(0, G.WIDTH), rnd(0, G.HEIGHT)),
       sprite: "b"
@@ -251,7 +256,7 @@ function init() {
   // Setup Gates -------
   gates = times(numerOfGates, (i) => {
     return {
-      pos: vec(rnd(3, G.WIDTH-30), (i+1) * gateDistance),
+      pos: vec(rnd(3, G.WIDTH-30), (i+1.1) * gateDistance),
       sprite: "c"
     };
   });
@@ -358,6 +363,7 @@ function drawPlayer() {
   if (input.isJustPressed) {
     player.direction = !player.direction;
     play("click", {pitch: -2000, volume: 0.3, note: "c"});
+    //player.speed = 0;
 
     // Add a point to the ski track when the player changes direction
     //skiTrack.push({ x: player.pos.x, y: player.pos.y, dir: player.direction});
@@ -378,7 +384,7 @@ function drawPlayer() {
   }
 
   // NOtes: skeespeed: -0.04 |> +0.02 = värdena jag hade innan.
-  player.speed = clamp(player.speed, 1, 3);
+  player.speed = clamp(player.speed, 1, 2.5);
   skeespeed = clamp(skeespeed, -2.5, -1); // XXX TODO: make min max speed constants
 
   if (GLOBAL_PAUSE)
@@ -417,7 +423,7 @@ function drawPlayer() {
 function drawSkitracks() {
   // Add a point to the ski track every 10 pixels of movement
 let lastPoint = skiTrack[skiTrack.length - 1];
-if (Math.abs(player.pos.y - lastPoint.y) > 10) {
+if (Math.abs(player.pos.y - lastPoint.y) > 5) {
   //let newY = lerp(lastPoint.y, player.pos.y, 0.5);
   skiTrack.push({ x: player.pos.x, y: player.pos.y,dir: player.direction });
 }
@@ -431,11 +437,11 @@ skiTrack = skiTrack.filter(point => point.y >= 0);
 //  if (skiTrack.length < tmp) {
 //    console.log("removed " + (tmp - skiTrack.length) + " points");
 //  }
-
 // Draw the ski track
 color("light_blue");
 for(let i = 1; i < skiTrack.length; i++) {
-  line(skiTrack[i-1].x, skiTrack[i-1].y, skiTrack[i].x, skiTrack[i].y, 2);
+  line(skiTrack[i-1].x-3, skiTrack[i-1].y, skiTrack[i].x-3, skiTrack[i].y, 1);
+  line(skiTrack[i-1].x+3, skiTrack[i-1].y, skiTrack[i].x+3, skiTrack[i].y, 1);
   //let tt = skiTrack[i].dir ? "\\\\" : "//";
   //text(tt, skiTrack[i-1].x, skiTrack[i-1].y, {scale: {x: 2, y: 2}});
 }

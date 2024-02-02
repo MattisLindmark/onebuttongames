@@ -154,7 +154,6 @@ function init() {
   winnerData = null;
 
 }
-
 function writeBaseScreen() {
   color("black");
   text(" Rock", G.STEP_X * G.STEP_SPREAD[0], G.CPOS_Y);
@@ -174,13 +173,14 @@ function selectState() {
   let currentStep = G.STEP_SPREAD[currentIndex];
 
   let charColor = "light_black";
-
+/*
   if (input.isPressed) {
     color("yellow");
     rect((G.STEP_X * currentStep) - 1, G.CPOS_Y - 6, 52, 12);
     //      charScaleBig = {x:4, y:4};
     charColor = "black";
   }
+*/
 
   color("green");
   rect(G.STEP_X * currentStep, G.CPOS_Y - 5, 50, 10);
@@ -493,6 +493,7 @@ function FinalScreen(PLendPos, AIendPos) {
     {
       numberOfGames++;
       if (winnerData.winner == "Player") {
+        play("powerUp");
         play("lucky");
         playerScore++;
       } else if (winnerData.winner == "Computer") {
