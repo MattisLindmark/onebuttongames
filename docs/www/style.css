@@ -45,11 +45,29 @@ main {
     max-width: 1200px;
     margin: 10px auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(350px, 2fr)); /*repeat(auto-fit, minmax(250px, 1fr)); */ 
+/*    grid-template-columns: repeat(auto-fit,minmax(350px, 2fr)); /*repeat(auto-fit, minmax(350px, 2fr)); */ 
+    grid-template-columns: repeat(auto-fit,minmax(250px, 1fr)); /*repeat(auto-fit, minmax(250px, 1fr)); */ 
+
     gap: 10px;    
+}
+.boxart {
+    background-image: var(--boxart-url);
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: -1;
+    /*background-image: url("../earthinvaders/boxart.jpg");*/
 }
 
 .item {
+/*    background-image: var(--boxart-url);*/
+    background-size: cover;
+    position: relative;
     border: 2px solid #fafafa;
     border-radius: 8px;
     padding-top: 15px;
@@ -61,13 +79,25 @@ main {
 }
 
 .item:hover {
-    background-color: #e0e0e0; /* Ljusare färg vid hover */
+    background-color: #00000083; /* Ljusare färg vid hover */
 }
 
 .item img {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
     width: 300px;
     height: 225px;
+    position: inherit;
     object-fit: cover;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    border: solid 2px #fafafa;
+    border-radius: 10px;
+}
+
+.item:hover img {
+    opacity: 1;
 }
 
 .item h2 {

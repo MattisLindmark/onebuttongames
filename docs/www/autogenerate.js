@@ -26,13 +26,16 @@ fetch(path)
     titles.forEach(title => {
         html += `
         <div class="item">
-            <h2>${title.title}</h2>
-            <img src="../${title.folderName}/screenshot.gif" alt="${title.title} Screenshot">
-            <p>${title.description}</p>
-            <div class="play-button">
-            <a href="${gamePath}${title.folderName}">Play</a>
-            </div>
+        <div class="boxart" style="--boxart-url: url('../${title.folderName}/boxart.jpg')"></div>
+        <h2>${title.title}</h2>
+        <img src="../${title.folderName}/screenshot.gif" alt="${title.title} Screenshot">
+        <p>${title.description}</p>
+        <div class="play-button">
+        <a href="${gamePath}${title.folderName}">Play</a>
+        </div>
         </div>`;
     });
     document.getElementById("games").innerHTML = html;
 }
+
+//         <div class="boxart" style="--boxart-url('../${title.folderName}/boxart.jpg')">test</div>
