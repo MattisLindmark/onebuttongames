@@ -53,7 +53,10 @@ options = {
   //isReplayEnabled: true,
   seed: 15,
   isShowingScore: false,
-  theme: "crt"
+  theme: "crt",
+//  isCapturing: true,
+//  captureCanvasScale: .2,
+//  isCapturingGameCanvasOnly: true
 };
 
 class Choice {

@@ -100,7 +100,13 @@ function update() {
     fullReset();
     initCharacters();
   }
-
+  /*
+  let tv = Math.floor(ticks / 10);
+  let c = tv % 2==0? "green" : "black";
+  let scl = tv % 4 == 0 ? 1 : 2;
+      color(c);
+      char("b", 50,50, {scale: {x: scl, y:scl} });
+*/
   if (inTransition) {
     transistionFunc();
     return;
@@ -385,6 +391,15 @@ function checkCollisions() {
     transistionFunc = () => {
       color("red");
       particle(player.pos, 10, 1);
+      // let c = ticks % 30==0 ? "green" : "black";
+      // let scl = ticks % 30==0 ? 2 : 1; 
+
+      let tv = Math.floor(ticks / 10);
+      let c = tv % 2==0? "green" : "black";
+      let scl = tv % 4 == 0 ? 1 : 2;
+
+      color(c);
+      char("b", player.pos.x,player.pos.y-4, {scale: {x: scl, y:scl} });
       color("light_green");
       rect(0, G.HEIGHT - 7, G.WIDTH, 10);
       color("black");

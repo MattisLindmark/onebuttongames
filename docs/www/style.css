@@ -47,12 +47,14 @@ main {
     display: grid;
 /*    grid-template-columns: repeat(auto-fit,minmax(350px, 2fr)); /*repeat(auto-fit, minmax(350px, 2fr)); */ 
     grid-template-columns: repeat(auto-fit,minmax(250px, 1fr)); /*repeat(auto-fit, minmax(250px, 1fr)); */ 
-
+    /*grid-auto-rows: 250px;*/
     gap: 10px;    
 }
+
 .boxart {
     background-image: var(--boxart-url);
     position: absolute;
+    display: block;
     top: 0;
     right: 0;
     bottom: 0;
@@ -65,7 +67,7 @@ main {
 }
 
 .item {
-/*    background-image: var(--boxart-url);*/
+    background-image: var(--boxart-url);
     background-size: cover;
     position: relative;
     border: 2px solid #fafafa;
@@ -75,7 +77,6 @@ main {
     text-align: center;
     transition: background-color 0.3s ease; /* Lägg till en övergångseffekt för bakgrundsfärgen */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
-    
 }
 
 .item:hover {
@@ -83,11 +84,11 @@ main {
 }
 
 .item img {
-    opacity: 0;
+    opacity: 0;    
     transition: opacity 0.3s ease-in-out;
     width: 300px;
     height: 225px;
-    position: inherit;
+    position: relative;
     object-fit: cover;
     left: 50%;
     transform: translateX(-50%);
@@ -110,9 +111,10 @@ main {
 }
 
 .item p {
-    position: bottom;
+    background-color: #00000090;
     text-align: left;
-    margin-left: 15px;
+    padding: 10px;
+    margin-left: 0px;
     font-size: 0.9em;
     color: #f0f0f0;
 }
@@ -123,7 +125,6 @@ main {
     background-color: #6abd5f;
     border-radius: 7px;
     margin: 0 auto;
-    display: flex;
     padding: 4px;
     justify-content: center;
     align-items: right;
@@ -144,4 +145,10 @@ main {
 
 h1 {
     margin: 0;
+}
+
+.infolable {
+    display: flex;
+    justify-content: space-between;
+    background-color: #ffffff50;
 }
