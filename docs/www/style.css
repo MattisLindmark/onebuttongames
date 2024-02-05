@@ -101,13 +101,20 @@ main {
 }
 
 .item h2 {
-    margin-top: 10px;
+    margin-top: -15px;
+    padding: 5px;
     font-size: 1.2em;
+    background-color: #bbc1c9b4;
+    color: rgb(56, 55, 52);
+    border-radius: 8px 8px 0px 0px;
 }
 
 .item p {
-    margin-top: 5px;
+    position: bottom;
+    text-align: left;
+    margin-left: 15px;
     font-size: 0.9em;
+    color: #f0f0f0;
 }
 
 .play-button {
@@ -119,7 +126,7 @@ main {
     display: flex;
     padding: 4px;
     justify-content: center;
-    align-items: center;
+    align-items: right;
     color: rgb(248, 242, 242); /* Make the text white */
     font-weight: bold; /* Make the text bold */
     transition: background-color 0.3s ease; /* Add a transition effect for the background color */

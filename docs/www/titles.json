@@ -19,6 +19,16 @@
         "title": "Dockerhell",
         "folderName": "dockerhell",
         "description": "Install docker. Or not."
+      },
+      {
+        "title": "SpeedSkii",
+        "folderName": "speedski",
+        "description": "Get ready for a downhill adventure unlike anything else! Based on the Vic-20 game with the same name."
+      },
+      {
+        "title": "AI-wargame",
+        "folderName": "rps",
+        "description": "Battle for humanity, defeat the AI in this advanced game of chance and skill that is as old as the human hand."
       }
     ]
   }

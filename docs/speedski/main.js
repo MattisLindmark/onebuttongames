@@ -29,9 +29,11 @@ l
 `
 ];
 
+// Comon sizes: Used 200x300 during dev.
+// 200x355 is close to 16:9
 
 const G = {
-  WIDTH: 200,
+  WIDTH: 210,
   HEIGHT: 300,
 };
 
@@ -44,9 +46,9 @@ options = {
   theme: "shape",
 
 //  isShowingTime: true,
-  //isCapturing: true,
-  //captureCanvasScale: 1,
-  //isCapturingGameCanvasOnly: true
+//  isCapturing: true,
+//  captureCanvasScale: .2,
+//  isCapturingGameCanvasOnly: true
 };
 /*
 * @typedef { object } player - It is a rock.
