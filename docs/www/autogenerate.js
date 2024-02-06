@@ -24,16 +24,15 @@ fetch(path)
   function printTheHTML(titles) {
     var html = "";
     titles.forEach(title => {
-        html += `
+      html += `
         <div class="item">
+        <div class="titlebar">${title.title}</div>
         <div class="boxart" style="--boxart-url: url('../${title.folderName}/boxart.jpg')"></div>
-        <h2>${title.title}</h2>
+        <div class="card">
         <img src="../${title.folderName}/screenshot.gif" alt="${title.title} Screenshot">
-        <div class="infolable">
+        <div class="play-button"><a href="${gamePath}${title.folderName}">Play</a></div>
+        <h2>${title.title}</h2>
         <p>${title.description}</p>        
-        <div class="play-button">
-        <a href="${gamePath}${title.folderName}">Play</a>
-        </div>
         </div>
         </div>`;
     });
