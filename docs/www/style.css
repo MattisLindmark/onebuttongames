@@ -1,3 +1,20 @@
+/*
+<svg style="display: none;">
+    <symbol id="play-icon" viewBox="0 0 50 50">
+        <circle cx="25" cy="25" r="20" fill="#3498DB" />
+        <path d="M18 15 L18 35 L32 25 Z" fill="white" />
+    </symbol>
+</svg>
+*/
+:root {
+    --play-iconblue: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 50'%3E%3Ccircle cx='25' cy='25' r='20' fill='%233498DB' /%3E%3Cpath d='M18 15 L18 35 L32 25 Z' fill='white' /%3E%3C/svg%3E");
+    --play-iconbig: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 50'%3E%3Ccircle cx='25' cy='25' r='20' fill='%23F2F2F2' /%3E%3Cpath d='M18 15 L18 35 L32 25 Z' fill='%231A1A1A' /%3E%3C/svg%3E");
+    --play-icon_clean: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 50'%3E%3Ccircle cx='25' cy='25' r='20' fill='%23F0F0F0' /%3E%3Cpath d='M20 18 L20 32 L30 25 Z' fill='%231A1A1A' /%3E%3C/svg%3E");
+    --play-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 50'%3E%3Ccircle cx='25' cy='25' r='20' fill='%23F2F2F2' stroke='%23BCBCBC' stroke-width='1' /%3E%3Cpath d='M20 18 L20 32 L30 25 Z' fill='%231A1A1A' /%3E%3C/svg%3E");
+
+
+}
+
 body {
     font-family: 'Arial', sans-serif;
     background-color: #f0f0f0;
@@ -8,6 +25,7 @@ body {
     margin: 0;
     padding: 20px;
     */
+    color: #F2F2F2;
 }
 
 .specialImage {
@@ -77,17 +95,21 @@ main {
     margin-top: 0px;
     padding: 5px 10px 5px 5px;
     font-size: 1.2em;
-    background-color: #bbc1c9ce;
+    background-color: #a9afb6c2;
     color: rgb(255, 255, 255);
     border-radius: 0px 0px 10px 0px;
-    box-shadow: 5px 3px 5px rgba(0, 0, 0, 0.35);
+    box-shadow: 5px 3px 5px rgba(0, 0, 0, 0.377);
     transition: all 0.3s ease;
     z-index: 4;
+    transform: scaleX(1);
+    transform-origin: left;
 }
 .item:hover .titlebar {
     background-color: #bbc1c9f5;
     box-shadow: 15px 3px 15px rgba(255, 255, 255, 0.35);
     bottom: 90%;
+    /*transform: scaleX(0);*/
+
 }
 
 .item .boxart {
@@ -108,7 +130,7 @@ main {
 
 
 .item img {
-    opacity: 0.2;    
+    opacity: 0.2;
     transition: opacity 0.3s ease-in-out;
     width: 100%;
     position: relative;
@@ -116,8 +138,8 @@ main {
     left: 50%;
     transform: translateX(-50%);
     z-index: -1;
-    border: solid 2px #fafafa;
-    border-radius: 10px;
+    border: solid 1px #fafafa;
+    border-radius: 10px 10px 0px 0px;
 }
 .item:hover img {
     opacity: 1;
@@ -128,36 +150,56 @@ main {
     opacity: 0;
     max-height: 0;
     overflow: hidden;
-    background-color: #97919180;
+    background-color: var(--card-color);
     padding: 5px;
-    margin: 0px;
-    border-radius: 10px;
+    margin: -3px;
+    border-radius: 0px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
-    transition: opacity 0.3s ease, max-height .8s ease;
+    transition: opacity 0.3s ease, max-height 0.8s ease;
     z-index: 1;
 }
 
 .item:hover .card {
-    background-color: #f1eaea;
+/*    background-color:  #e97e7e;*/
     height: fit-content;
-    max-height: 1000px;
+    max-height: 800px;
     opacity: 1;    
 }
 
-.play-button {
+.play-button{
+    background-image: var(--play-icon);
+    background-repeat: no-repeat;
+    background-size: contain;
+    position: absolute;
+    right: 5px;
+    width: 64px;
+    height: 64px;
+    display: inline-block;
+    margin-top: -20px;
+    padding: 0px;
+    justify-content: center;
+    align-items: right;
+    transition: all 0.1s ease; /* Add a transition effect for the background color */
+}
+
+.play-buttonOld {
     position: absolute;
     right: 20px;    
     width: fit-content;
     height: 25px;
     display: inline-block;
-    background-color: #6abd5f;
     border-radius: 25px;
+/*
+    background-color: #6abd5f;
     border: solid 1px #cfe2cc;
+    */
+    background-color: rgb(26, 129, 26);
+    border: solid 3px #cfcfcf;
     margin-top: -10px;
     padding: 10px 8px 5px 8px;
     justify-content: center;
     align-items: right;
-    color: rgb(248, 242, 242);
+    color: rgb(216, 216, 216);
     font-weight: bold;
     transition: all 0.1s ease; /* Add a transition effect for the background color */
 }
@@ -168,8 +210,8 @@ main {
     display: block; /* Göra hela rutan klickbar */
 }
 .play-button:hover {
-    background-color: #b1eca6; /* Darken the background color on mouse-over */
-    color: rgb(255, 255, 255);
+   /* background-color: rgb(187, 226, 187); /* #b1eca6; green on mouse-over */
+   /* color: rgb(52, 53, 51);*/
     transform: scale(1.5);
 }
 
@@ -179,14 +221,16 @@ main {
     padding: 5px;
     margin-left: 0px;
     font-size: 0.9em;
-    color: #1a1a1a;
+    color: #ffffff;
 }
 
 .item h2 {
-    margin-top: -5px;
+/*    margin-top: -4px;*/
+    margin: -4px -1px 0px -1px;
     padding: 5px;
     font-size: 1.2em;
-    background-color: #bbc1c9b4;
+    background-color: #d3d8dfd3;
     color: rgb(56, 55, 52);
-    border-radius: 8px 8px 0px 0px;
+    border: solid 1px #fafafa;
+    border-radius: 0px 0px 8px 8px;
 }

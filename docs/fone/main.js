@@ -68,6 +68,7 @@ function drawTrack2() {
   
     if (firstRound)
     {
+      nrOfLaps = -1;
       speedModifier = 0;
       angle = 12.2;
       throttle = 2.15;
@@ -112,22 +113,34 @@ function drawTrack2() {
 }
 
 let coltimer = 0;
+let offTrack = false;
 function checkCollisions(colData){
+
   if (colData.isColliding.rect.light_black || colData.isColliding.rect.green)
   {
     coltimer++;
-    if (coltimer % 20 == 0)
+    if (coltimer % 40 == 0)
     {
+      offTrack = false;
       score += 1;
     }
-    if (colData.isColliding.rect.green || colData.isColliding.rect.yellow && coltimer %20 == 0)// && coltimer % 40 == 0)
+    if (colData.isColliding.rect.green || colData.isColliding.rect.yellow)// && coltimer % 40 == 0)
     {
       //play("coin", {volume: 0.1});
       innerTrackColor = "yellow";
-      score += 10;
+      if (coltimer % 80 == 0)
+      {
+        score += 1;
+      }
+
     } else {
       innerTrackColor = "green";
     }
+  } else {
+    if (offTrack == true) {return;}
+    offTrack = true;
+    coltimer = 0;
+    score -= 10;
   }  
 }
 
