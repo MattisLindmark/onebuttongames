@@ -1,4 +1,4 @@
-title = "===> SpeedSkii <===";
+title = "===> SpeedSki <===";
 
 description = `Press to turn\nHold to go faster.\n\n
 Based on the game\nSpeedski for Vic20\n
@@ -61,7 +61,7 @@ options = {
 
 let player;
 let tree;
-let trackLength = 2000;
+let trackLength = 2500;
 let gate = { pos: vec(0,0) };
 let numerOfGates = 10;
 let gateDistance = Math.floor(trackLength / numerOfGates);
@@ -102,6 +102,7 @@ let StartValues = {
 function fullReset() {
   trees = [];
   skiTrack = [];
+  gates = [];
   skeespeed = -1;
   console.log("reset");
   goal = { pos: vec(G.WIDTH/2, trackLength+gateDistance) };
@@ -327,9 +328,9 @@ function drawStuff() {
     
     if (g.pos.y < G.HEIGHT) {
       color("cyan");
-      char(g.sprite, g.pos.x, g.pos.y, { scale: { x: 1.4, y: 1.4 } });
-      char(g.sprite, g.pos.x + gateWidth, g.pos.y, { scale: { x: 1.4, y: 1.4 } });
-      let col = line(g.pos.x-1, g.pos.y+4, g.pos.x + gateWidth-7, g.pos.y+4, 2);
+      char(g.sprite, g.pos.x, g.pos.y, { scale: { x: 1, y: 1 } });
+      char(g.sprite, g.pos.x + gateWidth, g.pos.y, { scale: { x: 1, y: 1 } });
+      let col = line(g.pos.x-1, g.pos.y+4, g.pos.x + gateWidth-6, g.pos.y+4, 1);
 
       if (col.isColliding.char.a && !g.hascollided) {
         score += 1;
