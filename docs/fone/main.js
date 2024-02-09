@@ -11,7 +11,35 @@ r rr
 llllll
  l  l
 
-`
+`,`
+  ll
+ lLLl 
+lL LLl
+lLL Ll
+ lLLl
+  ll
+`,`
+ llll 
+ l  l
+l l  l
+l    l
+ l  l
+ llll
+`,`
+ llll 
+ lGGl
+ lllll
+ llll
+ llll
+llllll
+`,`
+LLLL
+L l l
+Ll l l
+L l l
+LLLL
+`,
+
 ];
 
 const G = {
@@ -35,12 +63,53 @@ let nrOfLaps = 0;
 
 let innerTrackColor = "green";
 
+let baseCarStats = {
+  tire: 100,
+  fule: 100
+};
 
+function car( tire, fule) {
+  this.tire = tire;
+  this.fule = fule;
+}
+
+let playerCar;
+// ======================================================Update========================
 function update() {
   if (!ticks) {
+    fullReset();
+    playerCar = new car(100, 100);
+    sss.setVolume(0.1);
   }
+  playerCar.fule = clamp(playerCar.fule, 0, 100);
+  playerCar.tire = clamp(playerCar.tire, 0, 100);
+
+
+  //char("b", 98, 103, {scale: {x: 1.2, y: 1}});
+  
   drawTrack2();
   text("Laps: " + nrOfLaps, 50, 3);
+ 
+  if (char("b", 180, 100, {scale: {x: 2, y: 2}}).isColliding.char.a) {  
+    play("powerUp", {volume: 0.4});
+    playerCar.tire += 10;
+  }
+  if (char("d", 20, 100, {scale: {x: 2, y: 2}}).isColliding.char.a) {  
+    play("coin", {volume: 0.4});
+    playerCar.fule += 10;
+  }
+  char("b",75, 72);
+  char("d",75, 79);  
+  rect(80, 70, playerCar.tire/2, 4);
+  rect(80, 76, playerCar.fule/2, 4);
+
+
+  if (playerCar.tire < 1 || playerCar.fule < 1)
+  {
+    play("explosion", {volume: 0.3});
+    end();
+//    fullReset();
+  }
 }
 
 function drawTrack() {
@@ -55,6 +124,7 @@ function drawTrack() {
 
 let speedModifier = 1;
 let firstRound = true;
+
 function drawTrack2() {
   
   if (input.isPressed) {
@@ -80,6 +150,7 @@ function drawTrack2() {
        // angle = 0;
       }
     }
+  
 
   throttle = clamp(throttle,0,3);
   color("light_black");
@@ -89,9 +160,13 @@ function drawTrack2() {
   line(40, 85, 40, 120, 12);
   line(160, 85, 160, 120, 12);
 
-  drawThinTrack(100, 85, 60,1);
+color("light_black");
+arc(45, 102, 20, 4, PI / 1.5, 3 * PI / 2.2);
+arc(155, 102, 20, 4, PI / 1.5 + PI, 3 * PI / 2.2 + PI);
 
 
+  drawThinTrack(100, 85, 60,1); 
+  
   let x = 100 + (30 * throttle) * Math.cos(angle);
   let y = 103 + (30 * throttle) * Math.sin(angle);
 
@@ -100,8 +175,21 @@ function drawTrack2() {
   let col = char("a", x, y, { scale:{x: 2, y: 2} });
 //  char("a", x, y, { scale:{x: 2, y: 2}, rotation: angle });
 
+if (firstRound)
+{
+  color("black");
+  text("press any key", G.WIDTH/2-30, 90);
+  return;
+}
+
   checkCollisions(col);
 
+  if (ticks % 10 == 0)
+  {
+    playerCar.tire -= 0.5;
+    playerCar.fule -= 1;
+  }
+  
   // Update the angle
   angle += speed * 2;//speedModifier;
 
@@ -118,35 +206,58 @@ function checkCollisions(colData){
 
   if (colData.isColliding.rect.light_black || colData.isColliding.rect.green)
   {
-    coltimer++;
-    if (coltimer % 40 == 0)
-    {
+    if (offTrack == true) {
+      coltimer = 0;
       offTrack = false;
-      score += 1;
     }
+
+    coltimer++;
+    // if (coltimer % 160 == 0)
+    // {
+    //   offTrack = false;
+    //   score += 1;
+    // }
     if (colData.isColliding.rect.green || colData.isColliding.rect.yellow)// && coltimer % 40 == 0)
     {
       //play("coin", {volume: 0.1});
       innerTrackColor = "yellow";
       if (coltimer % 80 == 0)
       {
+        play("coin", {volume: 0.1});
         score += 1;
       }
 
     } else {
       innerTrackColor = "green";
+      coltimer = 0;
     }
   } else {
-    if (offTrack == true) {return;}
+    if (offTrack == false) {
+      coltimer = 19;
+      offTrack = true;
+    }
+    coltimer ++;
+    if (coltimer % 20 == 0){
+      play("click", {pitch: -500, volume: 0.3, note: "c"});
+      score -= 1;
+    }
+   }
+/*
+    if (offTrack == true) {
+//      play("explosion", {volume: 0.3});
+      play("click", {pitch: -500, volume: 0.3, note: "c"});
+      score -= 1;
+      return;
+    }
     offTrack = true;
     coltimer = 0;
-    score -= 10;
-  }  
+    //score -= 10;
+  }*/  
 }
 
 
 function drawThinTrack(cx, cy, rad, thick) {
-  throttle = clamp(throttle,0,3);
+//  throttle = clamp(throttle,0,3);
   color(innerTrackColor);
   arc(cx, cy, rad, thick, PI, 2 * PI);
   arc(cx, cy + 35, rad, thick, 0, PI);
@@ -158,6 +269,10 @@ function drawThinTrack(cx, cy, rad, thick) {
 
 }
 
+function drawDepoes(){
+
+}
+
 function fullReset()
 {
   speedModifier = 1;
@@ -166,4 +281,5 @@ function fullReset()
   coltimer = 0;
   score = 0;
   nrOfLaps = 0;
+  firstRound = true;
 }

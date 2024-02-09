@@ -61,7 +61,7 @@ options = {
 
 let player;
 let tree;
-let trackLength = 1500;
+let trackLength = 2000;
 let gate = { pos: vec(0,0) };
 let numerOfGates = 10;
 let gateDistance = Math.floor(trackLength / numerOfGates);
@@ -258,7 +258,7 @@ function init() {
   // Setup Gates -------
   gates = times(numerOfGates, (i) => {
     return {
-      pos: vec(rnd(3, G.WIDTH-30), (i+1.1) * gateDistance),
+      pos: vec(rnd(5, G.WIDTH-34), (i+1.1) * gateDistance), // 6 och Gwidth-35 funkar
       sprite: "c"
     };
   });
@@ -401,7 +401,7 @@ function drawPlayer() {
   let plCol = char(player.sprite, player.pos.x, player.pos.y, { scale: { x: 2, y: 2 }, mirror: { x: mirror} });
 
   // player speed indicator
-  color("black");
+  color("light_black");
   rect(0, 20, player.speed * 10, 3);
   rect(0, 24, Math.abs(skeespeed) * 10, 3);
   // debug info
@@ -410,7 +410,7 @@ function drawPlayer() {
 
   // check for collisions
   if (plCol.isColliding.char.b) {
-    player.speed -= .3;
+    player.speed -= .3; // .3 default
     skeespeed += 0.2;
   }
 
@@ -477,8 +477,8 @@ function drawTrees() {
      }
 
     if (t.pos.y < 0) {
-      t.pos.y = G.HEIGHT+rnd(0, 100);
-      t.pos.x = rnd(0, G.WIDTH);
+      t.pos.y = G.HEIGHT+rnd(0, 150);
+      t.pos.x = rnd(-20, G.WIDTH+20);
     }
   });
     
