@@ -60,6 +60,7 @@ let speed = 0.01;
 let throttle = 0;
 
 let nrOfLaps = 0;
+let maxNrOfLaps = 5;
 
 let innerTrackColor = "green";
 
@@ -88,7 +89,7 @@ function update() {
   //char("b", 98, 103, {scale: {x: 1.2, y: 1}});
   
   drawTrack2();
-  text("Laps: " + nrOfLaps, 50, 3);
+  text("Laps: " + nrOfLaps+" / "+maxNrOfLaps, 50, 3);
  
   if (char("b", 180, 100, {scale: {x: 2, y: 2}}).isColliding.char.a) {  
     play("powerUp", {volume: 0.4});
@@ -109,6 +110,12 @@ function update() {
     play("explosion", {volume: 0.3});
     end();
 //    fullReset();
+  }
+
+  if (nrOfLaps >= maxNrOfLaps)
+  {
+    play("powerUp", {volume: 0.3});
+    complete();
   }
 }
 
@@ -184,10 +191,12 @@ if (firstRound)
 
   checkCollisions(col);
 
-  if (ticks % 10 == 0)
+  if (ticks % 5 == 0)
   {
-    playerCar.tire -= 0.5;
-    playerCar.fule -= 1;
+    playerCar.tire -= 0.5; // <--- NOTE: is also reduced when going off track. Lins 123-126
+    if (input.isPressed){
+        playerCar.fule -= 1;
+       }
   }
   
   // Update the angle
@@ -221,7 +230,7 @@ function checkCollisions(colData){
     {
       //play("coin", {volume: 0.1});
       innerTrackColor = "yellow";
-      if (coltimer % 80 == 0)
+      if (coltimer % 40 == 0)
       {
         play("coin", {volume: 0.1});
         score += 1;
@@ -240,6 +249,7 @@ function checkCollisions(colData){
     if (coltimer % 20 == 0){
       play("click", {pitch: -500, volume: 0.3, note: "c"});
       score -= 1;
+      playerCar.tire -= 1;
     }
    }
 /*
