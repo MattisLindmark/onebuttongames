@@ -11,9 +11,9 @@
         "description": "Invade the shooter."
       },
       {
-        "title": "AntonZleeep",
+        "title": "On Call",
         "folderName": "antonzleep",
-        "description": "Wake up in time!"
+        "description": "Wake up in time! The first installment in the Original Anton saga!"
       },
       {
         "title": "Dockerhell",
@@ -29,6 +29,16 @@
         "title": "AI-wargame",
         "folderName": "rps",
         "description": "Battle for humanity, defeat the AI in this advanced game of chance and skill that is as old as the human hand."
+      },
+      {
+        "title": "F-ONE",
+        "folderName": "fone",
+        "description": "Satisfy your need for speed, fine-tune your reflexes  and dominate the racetrack in this high-octane sports game revolving around circuit driving!"
+      },
+      {
+        "title": "REfule",
+        "folderName": "tanka",
+        "description": "One mans struggle <s>against</s> in the world to reach balance! Experience this second installment in the Original Anton saga!"
       }
     ]
   }

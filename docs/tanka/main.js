@@ -4,7 +4,23 @@ title = "Tanka";
 description = `Ett spel om att tanka.
 `;
 
-characters = [];
+characters = [
+`
+ lll
+ llL
+llllll
+llllll
+ l  l
+
+`, `
+ llll 
+ lGGl
+ lllll
+ llll
+ llll
+llllll
+`
+];
 
 const G = {
   WIDTH: 300,
@@ -35,12 +51,17 @@ let currentGoal = {
 let handleReleased = false;
 
 let statefunk = tanka;
+let intro = true;
 
 function update() {
   if (!ticks) {
     setup();
+    intro = true;
   }
-  
+  if (intro == true) {
+   drawIntro();
+   return;
+  }
 
   drawBgr2();
   drawGasPumpHandle();
@@ -57,6 +78,24 @@ function update() {
 }
 
 function setup() {
+
+}
+
+let x = 0;
+function drawIntro() {
+  //move char a from left to the middle of the screen.
+  color("blue");
+  text("You ned to tanka!", G.WIDTH/2-30, G.HEIGHT/2-40);
+  text("Drive to the mack!", G.WIDTH/2-30, G.HEIGHT/2-30);
+  color("black");
+  char("a", x, 155, {scale: {x: 4, y: 4}});
+  char("b", 155, 150, {scale: {x: 4, y: 4}});
+//  if (input.isPressed) {
+  x++;
+//  }
+  if (x > 150) {
+    intro = false;
+  }
 
 }
 

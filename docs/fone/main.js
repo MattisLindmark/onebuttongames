@@ -69,6 +69,7 @@ let baseCarStats = {
   fule: 100
 };
 
+
 function car( tire, fule) {
   this.tire = tire;
   this.fule = fule;
@@ -85,6 +86,10 @@ function update() {
   playerCar.fule = clamp(playerCar.fule, 0, 100);
   playerCar.tire = clamp(playerCar.tire, 0, 100);
 
+  if (firstRound){
+    drawTrack2();
+    return;
+  }
 
   //char("b", 98, 103, {scale: {x: 1.2, y: 1}});
   
