@@ -1,7 +1,7 @@
-// title = "Formula One";
+ title = "F-One";
 
-// description = `F1 for One.
-// `;
+ description = `The speed is the limit!
+ `;
 
 characters = [
 `
@@ -38,6 +38,14 @@ L l l
 Ll l l
 L l l
 LLLL
+`,
+`
+wwwwww
+ lwwl  
+ lLLl
+  ww  
+ lwwl
+ lyyl 
 `,
 
 ];
@@ -77,40 +85,36 @@ function car( tire, fule) {
 
 /* Ljudtest */
 // Create an AudioContext
-let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-let motorsound = audioContext.createOscillator();
+
+let audioContext;// = new (window.AudioContext || window.webkitAudioContext)();
+let motorsound;// = audioContext.createOscillator();
+let detuneValue;// = 1000;
+let gainNode;// = audioContext.createGain();
+/*
 motorsound.type = 'sawtooth';
 motorsound.frequency.value = 60;
-let detuneValue = 1000;
-
 motorsound.detune.value = detuneValue;
-
-// Create a GainNode
-let gainNode = audioContext.createGain();
-
-// Connect the oscillator to the GainNode
 motorsound.connect(gainNode);
-
-// Connect the GainNode to the destination
 gainNode.connect(audioContext.destination);
-// Set the volume
 gainNode.gain.value = 0; // 50% volume
 motorsound.start();
+*/
 
 // motorsound.start();
 // setTimeout(() => {
 //     motorsound.stop();
 // }, 5000);
 let detuneMod = 0;
-
 let playerCar;
 // ======================================================Update========================
 function update() {
   if (!ticks) {
+    AudioSetup();
     detuneMod = 0;
     fullReset();
     playerCar = new car(100, 100);
     sss.setVolume(0.3);
+    sss.setSeed(1);
     console.log("THIS is the first");
   }
 
@@ -133,7 +137,7 @@ function update() {
  
   drawTrack2();
 
-  if (nrOfLaps >= maxNrOfLaps - 1) {
+  if (nrOfLaps >= maxNrOfLaps) {
     color("white");
     char("e", 155, 100, { scale: { x: 2, y: 2 } });
     color("black");
@@ -142,13 +146,14 @@ function update() {
     char("e", 150, 100, { scale: { x: 1, y: 1 } });
   }
 
-  text("Laps: " + nrOfLaps+" / "+maxNrOfLaps, 50, 3);
+  let fixEndLap = nrOfLaps>maxNrOfLaps?maxNrOfLaps:nrOfLaps;
+  text("Laps: " + fixEndLap+" / "+maxNrOfLaps, 50, 3);
  
-  if (char("b", 180, 100, {scale: {x: 2, y: 2}}).isColliding.char.a) {  
+  if (char("b", 180, 100, {scale: {x: 2, y: 2}}).isColliding.char.f) {  
     play("powerUp", {volume: 0.4});
     playerCar.tire += 10;
   }
-  if (char("d", 20, 100, {scale: {x: 2, y: 2}}).isColliding.char.a) {  
+  if (char("d", 20, 100, {scale: {x: 2, y: 2}}).isColliding.char.f) {  
     play("coin", {volume: 0.4});
     playerCar.fule += 10;
   }
@@ -156,8 +161,6 @@ function update() {
   char("d",75, 79);  
   rect(80, 70, playerCar.tire/2, 4);
   rect(80, 76, playerCar.fule/2, 4);
-
-// HÄÄÄÄR
 
   if (playerCar.tire < 1 || playerCar.fule < 1)
   {
@@ -167,13 +170,49 @@ function update() {
 //    fullReset();
   }
 
-  if (nrOfLaps >= maxNrOfLaps)
+  if (nrOfLaps > maxNrOfLaps)
   {
     motorsoundOnOff(false);
     play("powerUp", {volume: 0.3});
     complete();
   }
 }
+
+function AudioSetup() {
+  // Create an AudioContext
+  audioContext = null;
+
+
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  motorsound = audioContext.createOscillator();
+  detuneValue = 1000;
+  gainNode = audioContext.createGain();
+  motorsound.type = 'sawtooth';
+  motorsound.frequency.value = 60;
+  motorsound.detune.value = detuneValue;
+  motorsound.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  gainNode.gain.value = 0; // 50% volume
+  motorsound.start();
+
+  /*
+  let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let motorsound = audioContext.createOscillator();
+let detuneValue = 1000;
+let gainNode = audioContext.createGain();
+motorsound.type = 'sawtooth';
+motorsound.frequency.value = 60;
+motorsound.detune.value = detuneValue;
+motorsound.connect(gainNode);
+gainNode.connect(audioContext.destination);
+gainNode.gain.value = 0; // 50% volume
+motorsound.start();
+
+  */
+
+}
+
+
 
 function motorsoundOnOff(onOff) {
   if (onOff)
@@ -220,15 +259,18 @@ function drawTrack2() {
   
     if (firstRound)
     {
-      nrOfLaps = -2;
+      nrOfLaps = 1;
       speedModifier = 0;
-      angle = 12.2;
+      angle = 0;//12.2;
       throttle = 2.15;
       if (input.isJustPressed)
       {
         firstRound = false;
         speedModifier = 0.01;
 //        motorsound.start();
+        if (audioContext.state === 'suspended') {
+          AudioSetup();          
+        }
         motorsoundOnOff(true);
         //throttle = 2;
        // angle = 0;
@@ -254,10 +296,20 @@ function drawTrack2() {
   let x = 100 + (30 * throttle) * Math.cos(angle);
   let y = 103 + (30 * throttle) * Math.sin(angle);
 
-  color("black");
+// Calculate the derivative of the oval function at the current angle
+/*
+let dx =100 + (-30 * throttle) * Math.sin(angle);
+let dy = 103 + (30 * throttle) * Math.cos(angle);
+let rotation = Math.atan2(dy, dx);
+*/
+
+color("black");
+let col = char("f", x, y, { scale:{x: 2, y: 2}, rotation: calcRotation(angle) });
+
+
   // Draw the character at the new position
-  let col = char("a", x, y, { scale:{x: 2, y: 2} });
-//  char("a", x, y, { scale:{x: 2, y: 2}, rotation: angle });
+  //let col = char("a", x, y, { scale:{x: 2, y: 2} }); <----
+  // let col =  char("a", x, y, { scale:{x: 2, y: 2}, rotation: rotation });
 
 if (firstRound)
 {
@@ -285,6 +337,32 @@ if (firstRound)
   }
 
 }
+
+let prevRotation = 0;
+function calcRotation(angle) {
+
+//  let dx = 100+ (-30 * throttle) * Math.sin(angle);
+//  let dy = 103+ (30 * throttle) * Math.cos(angle);
+//  let rotation = Math.atan2(dy, dx);
+
+  let rotation = (angle / 6) * 4;
+
+  if (angle == 12.2){
+    rotation = 1;
+  } // magic number ftw, orkar inte förklara. den är satt att starta där tidigare.
+
+  
+  
+  color("black");  
+  text("ang "+angle, 10, 10);
+//  if (Math.abs(rotation - prevRotation) > Math.PI) {
+//    rotation += 2 * Math.PI * (rotation < prevRotation ? 1 : -1);
+//  }
+  prevRotation = rotation;
+  return rotation;
+}
+
+
 
 let coltimer = 0;
 //let comboBonus = 0;
