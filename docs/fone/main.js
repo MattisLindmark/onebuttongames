@@ -158,9 +158,14 @@ function update() {
     playerCar.fule += 10;
   }
   char("b",75, 72);
-  char("d",75, 79);  
+  char("d",75, 79);
+  let tcolor = playerCar.tire > 40 ? "green" : "red";
+  let fcolor = playerCar.fule > 40 ? "green" : "red";
+  color(tcolor);
   rect(80, 70, playerCar.tire/2, 4);
+  color(fcolor);
   rect(80, 76, playerCar.fule/2, 4);
+  color("black");
 
   if (playerCar.tire < 1 || playerCar.fule < 1)
   {
@@ -350,11 +355,7 @@ function calcRotation(angle) {
   if (angle == 12.2){
     rotation = 1;
   } // magic number ftw, orkar inte förklara. den är satt att starta där tidigare.
-
-  
-  
-  color("black");  
-  text("ang "+angle, 10, 10);
+ 
 //  if (Math.abs(rotation - prevRotation) > Math.PI) {
 //    rotation += 2 * Math.PI * (rotation < prevRotation ? 1 : -1);
 //  }
@@ -376,6 +377,8 @@ function checkCollisions(colData){
   // rect(20, 20, comboBonus * 10, 2);
   // color("black");
 
+
+
   if (colData.isColliding.rect.light_black || colData.isColliding.rect.green)
   {
     if (offTrack == true) {
@@ -393,9 +396,10 @@ function checkCollisions(colData){
     {
       //play("coin", {volume: 0.1});
       innerTrackColor = "yellow";
-      if (coltimer % 40 == 0)
+      if (coltimer % 40 == 0 && coltimer > 0)
       {
-        play("coin", {volume: 0.1});
+//        play("coin", {volume: 0.1});
+        coltimer = 0;
 //        comboBonus+=0.2;
 //        comboBonus = clamp(comboBonus,0,1);
         score += 1;// + Math.floor(comboBonus);
@@ -403,8 +407,8 @@ function checkCollisions(colData){
 
     } else {
       innerTrackColor = "green";
-     // comboBonus = 0;
-      coltimer = 0;
+      coltimer = -40;      
+//      play("hit", {volume: 0.5});
     }
   } else {
     if (offTrack == false) {
