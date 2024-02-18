@@ -61,6 +61,9 @@ options = {
   //isReplayEnabled: true,
   seed: 1,
   theme: "shape",
+//  isCapturing: true,
+//  isCapturingGameCanvasOnly: true,
+//  captureCanvasScale: .25
 };
 
 let angle = 0;

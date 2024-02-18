@@ -19,7 +19,14 @@ llllll
  llll
  llll
 llllll
-`
+`, `
+  ll  
+ llll
+llllll
+llllll
+ llll
+  ll
+`, 
 ];
 
 const G = {
@@ -52,6 +59,7 @@ let handleReleased = false;
 
 let statefunk = tanka;
 let intro = true;
+let day = 0;
 
 function update() {
   if (!ticks) {
@@ -78,26 +86,70 @@ function update() {
 }
 
 function setup() {
+  console.log("setup" +day);
+  day++;
+  handleReleased = false;
+  currentKR = 0;
+  currentL = 0;
+  tankaTimer = 0;
+  intro = true;
+  statefunk = tanka;
 
 }
 
-let x = 0;
+let introX = 0;
 function drawIntro() {
+  drawIntroEnvironment();
   //move char a from left to the middle of the screen.
+  color("black");
+  text("Day " + day, G.WIDTH/2-30, G.HEIGHT/2-50);
   color("blue");
   text("You ned to tanka!", G.WIDTH/2-30, G.HEIGHT/2-40);
   text("Drive to the mack!", G.WIDTH/2-30, G.HEIGHT/2-30);
   color("black");
-  char("a", x, 155, {scale: {x: 4, y: 4}});
-  char("b", 155, 150, {scale: {x: 4, y: 4}});
-//  if (input.isPressed) {
-  x++;
-//  }
-  if (x > 150) {
-    intro = false;
+  char("a", introX, 155, {scale: {x: 4, y: 4}});
+  let col = char("b", G.WIDTH-100, 150, {scale: {x: 4, y: 4}});
+  if (input.isPressed) {
+  introX++;
   }
 
+  introX = wrap(introX, 0, G.WIDTH);
+
+  if (col.isColliding.char.a) {
+    if (input.isJustReleased) {
+      intro = false;
+      introX = 0;
+    }
+  }
 }
+
+function drawIntroEnvironment() {
+  // Draw grass and hills at the middle half of screen
+  color("green");
+  rect(0, 160, G.WIDTH, G.HEIGHT);
+  color("light_blue");
+  rect(0, 0, G.WIDTH, 160);
+  // Draw the sun
+  color("yellow");
+  // Draw the sun
+  const sunX = G.WIDTH - 50;// wrap(ticks, 0, G.WIDTH);
+  const sunY = 50;//30 + 10 * Math.sin(ticks * 0.01);
+  let rotationSpeed = Math.PI / 180;
+  let rotation = (ticks * rotationSpeed) % (Math.PI * 2);  
+  char("c", sunX, sunY, {scale: {x:3,y:3}, rotation: rotation});
+
+  // clouds
+  color("white");
+  let cloudSpeed = 0.5;
+  let cloudX = (ticks * cloudSpeed) % G.WIDTH;
+  let cloudY = 20;
+  char("b", cloudX, cloudY, {scale: {x:3,y:3}});
+  char("b", cloudX + 50, cloudY, {scale: {x:3,y:3}});
+  char("b", cloudX + 100, cloudY, {scale: {x:3,y:3}});
+
+}
+
+
 
 function calculateScore() {
   // the cloaser to the goal the more points
@@ -152,11 +204,6 @@ function drawGasPumpHandle() {
   if (input.isJustReleased && handleReleased == false) {
     handleReleased = true;
   }
-
-  
-
-
-
 }
 
 function drawBgr() {
@@ -193,6 +240,9 @@ rect(baseX, baseY, baseWidth, baseHeight);
 
 function tanka(){
 
+  if (input.isJustReleased){
+    console.log("WHAAT THE FUUK");
+  }
   
   if (input.isPressed){
     tankaTimer++;
