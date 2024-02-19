@@ -26,7 +26,12 @@ llllll
 llllll
  llll
   ll
-`, 
+`,`
+  lll
+llllll
+llLll
+ ll
+`
 ];
 
 const G = {
@@ -50,33 +55,55 @@ let currentL = 0;
 let tankaTimer = 0;
 const literpris = 18.57;
 
-let currentGoal = {
-  kr: 185.70,
-  l: 10
-};
+const goals = [
+  {kr: 10*literpris, l: 10},
+  {kr: 300, l: 300/literpris},
+  {kr: 1000, l: 1000/literpris}
+];
+
+let currentGoal = goals[0];
+
+// let currentGoal = {
+//   kr: 185.70,
+//   l: 10
+// };
 
 let handleReleased = false;
 
 let statefunk = tanka;
-let intro = true;
 let day = 0;
+let introTimer = 0;
+let _intro = true;
+Object.defineProperty(this, "intro", {
+  get: function() {
+    return _intro;
+  
+  },
+  set: function(value) {
+    _intro = value;
+    console.log("intro: " + _intro);
+    if (value == true) {
+      introTimer = 0;
+    }
+  }
+});
 
 function update() {
   if (!ticks) {
     setup();
-    intro = true;
+    this.intro = true;
   }
-  if (intro == true) {
+  if (this.intro == true) {
    drawIntro();
    return;
   }
 
   drawBgr2();
   drawGasPumpHandle();
-  statefunk();
   drawDisplay();
-
+  
   drawCurrentGoal();
+  statefunk();
 
   if (handleReleased) {
     calculateScore();
@@ -92,20 +119,36 @@ function setup() {
   currentKR = 0;
   currentL = 0;
   tankaTimer = 0;
-  intro = true;
+  this.intro = true;
   statefunk = tanka;
+}
 
+function getReady()
+{
+  handleReleased = false; // Inte bra, men handle sätts i drawGasPumpHandle, så jag ids inte...
+  color("red");
+  rect(0,0, G.WIDTH, G.HEIGHT);
+  
+  color("black");
+  text("Get ready", G.WIDTH/2-50, G.HEIGHT/2-30, {scale:{x:3 , y:3}});
+  text("to tanka!", G.WIDTH/2-50, G.HEIGHT/2, {scale:{x:3 , y:3}});
+  text("Goal: " + currentGoal.kr + " kr", G.WIDTH/2-50, G.HEIGHT/2+30, {scale:{x:2 , y:2}});
+  text("Goal: " + currentGoal.l + " liter", G.WIDTH/2-50, G.HEIGHT/2+40, {scale:{x:2 , y:2}});
 }
 
 let introX = 0;
 function drawIntro() {
+  introTimer++;
+  let animValue = clamp(introTimer * 0.01, 0, 1);
   drawIntroEnvironment();
   //move char a from left to the middle of the screen.
   color("black");
-  text("Day " + day, G.WIDTH/2-30, G.HEIGHT/2-50);
-  color("blue");
-  text("You ned to tanka!", G.WIDTH/2-30, G.HEIGHT/2-40);
-  text("Drive to the mack!", G.WIDTH/2-30, G.HEIGHT/2-30);
+  text("Day " + day, G.WIDTH/2-30, easeOutCubic(animValue,-10,G.HEIGHT/2-80), {scale:{x:2 , y:2}});
+  if (animValue > 0.9) {
+    color("blue");
+    text("You ned to tanka!", G.WIDTH/2-50, G.HEIGHT/2-50);
+    text("Drive to the mack!", G.WIDTH/2-50, G.HEIGHT/2-40);
+  }
   color("black");
   char("a", introX, 155, {scale: {x: 4, y: 4}});
   let col = char("b", G.WIDTH-100, 150, {scale: {x: 4, y: 4}});
@@ -117,11 +160,31 @@ function drawIntro() {
 
   if (col.isColliding.char.a) {
     if (input.isJustReleased) {
-      intro = false;
+      this.intro = false;
       introX = 0;
+      // Set statefunk to getReady() for 1 second, then set it back to tanka
+      statefunk = getReady;
+      setTimeout(() => {
+        statefunk = tanka;
+      }, 2000);
     }
   }
 }
+
+// eas in out function
+function easeInOutCubic(x) {
+  return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+}
+// eas in with start and end values
+function easeInCubic(x, start, end) {
+  return start + (end - start) * x * x * x;
+}
+
+function easeOutCubic(x, start, end) {
+  x = x - 1;
+  return start + (end - start) * (x * x * x + 1);
+}
+
 
 function drawIntroEnvironment() {
   // Draw grass and hills at the middle half of screen
@@ -139,17 +202,42 @@ function drawIntroEnvironment() {
   char("c", sunX, sunY, {scale: {x:3,y:3}, rotation: rotation});
 
   // clouds
+  drawClouds(ticks);
+  return;
   color("white");
   let cloudSpeed = 0.5;
   let cloudX = (ticks * cloudSpeed) % G.WIDTH;
   let cloudY = 20;
-  char("b", cloudX, cloudY, {scale: {x:3,y:3}});
-  char("b", cloudX + 50, cloudY, {scale: {x:3,y:3}});
-  char("b", cloudX + 100, cloudY, {scale: {x:3,y:3}});
+  char("c", cloudX, cloudY, {scale: {x:3,y:2}});
+  char("d", cloudX + 50, cloudY, {scale: {x:3,y:3}});
+  char("d", cloudX + 100, cloudY, {scale: {x:6,y:4}, rotation: 90});
 
 }
 
+function drawClouds(ticks) {
+  color("white");
 
+  // Define the speeds for the three clouds
+  let cloudSpeeds = [0.5, 0.7, 0.3];
+
+  // Define the vertical motion speed
+  let verticalSpeed = 0.01;
+
+  // Draw the three clouds
+  for (let i = 0; i < 3; i++) {
+    let cloudX = (ticks * cloudSpeeds[i]) % G.WIDTH;
+    let cloudY = 20 + Math.sin(ticks * verticalSpeed) * 10; // Subtle up and down motion
+    let cloudYY = 20 + Math.sin(ticks * verticalSpeed*-1) * 5; // Subtle up and down motion
+
+    if (i === 0) {
+      char("d", cloudX, cloudYY, {scale: {x:6, y:4}, rotation: 90});
+    } else if (i === 1) {
+      char("d", cloudX, cloudY+10, {scale: {x:3, y:3}});
+    } else {
+      char("d", cloudX, 30-cloudY*0.2, {scale: {x:6, y:1},rotation: 3});
+    }
+  }
+}
 
 function calculateScore() {
   // the cloaser to the goal the more points
@@ -241,7 +329,7 @@ rect(baseX, baseY, baseWidth, baseHeight);
 function tanka(){
 
   if (input.isJustReleased){
-    console.log("WHAAT THE FUUK");
+    //somthing or nothing
   }
   
   if (input.isPressed){
