@@ -35,8 +35,8 @@ llLll
 ];
 
 const G = {
-  WIDTH: 300,
-  HEIGHT: 300,
+  WIDTH: 250,
+  HEIGHT: 250,
 };
 
 options = {
@@ -93,6 +93,7 @@ function update() {
     setup();
     this.intro = true;
   }
+
   if (this.intro == true) {
    drawIntro();
    return;
@@ -121,19 +122,22 @@ function setup() {
   tankaTimer = 0;
   this.intro = true;
   statefunk = tanka;
+  currentGoal = goals[day-1];
 }
 
 function getReady()
 {
   handleReleased = false; // Inte bra, men handle sätts i drawGasPumpHandle, så jag ids inte...
-  color("red");
+  color("white");
   rect(0,0, G.WIDTH, G.HEIGHT);
   
+  color("red");
+  text("Get ready", G.WIDTH/2-60, G.HEIGHT/2-40, {scale:{x:3 , y:3}});
+  text("to tanka!", G.WIDTH/2-60, G.HEIGHT/2-20, {scale:{x:3 , y:3}});
+  color("blue");
+  text("Goal: " + currentGoal.kr + " kr", G.WIDTH/2-70, G.HEIGHT/2+30, {scale:{x:2 , y:2}});
+  text("Goal: " + currentGoal.l + " liter", G.WIDTH/2-70, G.HEIGHT/2+50, {scale:{x:2 , y:2}});
   color("black");
-  text("Get ready", G.WIDTH/2-50, G.HEIGHT/2-30, {scale:{x:3 , y:3}});
-  text("to tanka!", G.WIDTH/2-50, G.HEIGHT/2, {scale:{x:3 , y:3}});
-  text("Goal: " + currentGoal.kr + " kr", G.WIDTH/2-50, G.HEIGHT/2+30, {scale:{x:2 , y:2}});
-  text("Goal: " + currentGoal.l + " liter", G.WIDTH/2-50, G.HEIGHT/2+40, {scale:{x:2 , y:2}});
 }
 
 let introX = 0;
@@ -243,11 +247,16 @@ function calculateScore() {
   // the cloaser to the goal the more points
   let krDiff = Math.abs(currentGoal.kr - currentKR);
   let lDiff = Math.abs(currentGoal.l - currentL);
-  let krPoints = 100 - krDiff;
-  let lPoints = 100 - lDiff;
+  let krPoints = Math.abs(100 - krDiff);
+  let lPoints = Math.abs(100 - lDiff);
+
+  let totalPoint = krPoints + lPoints;
+  // make this to 2 decmals
+  totalPoint = parseFloat((totalPoint).toFixed(2));
+    
   
   statefunk = function() {
-    color("white");
+    color("green");
     text("Points: " + (krPoints + lPoints), G.WIDTH/2-30, G.HEIGHT/2+10);
     text("It was " + krDiff + " kr from the goal", G.WIDTH/2-30, G.HEIGHT/2+20);
     end();
@@ -255,9 +264,12 @@ function calculateScore() {
 }
 
 function drawCurrentGoal() {
+  //color("white");
+  //rect(G.WIDTH/2-40, G.HEIGHT/2-40, 80, 60);
   color("white");
-  text("Goal: " + currentGoal.kr + " kr", G.WIDTH/2-35, G.HEIGHT/2-30);
-  text("Goal: " + currentGoal.l + " liter", G.WIDTH/2-35, G.HEIGHT/2-20);
+  text("Goal: ", G.WIDTH/2-15, G.HEIGHT/2-30);
+  text("" + currentGoal.kr + " kr", G.WIDTH/2-25, G.HEIGHT/2-20);
+  text("" + currentGoal.l + " litre", G.WIDTH/2-25, G.HEIGHT/2-10);
 
 }
 
@@ -281,12 +293,24 @@ function drawGasPumpHandle() {
   arc(G.WIDTH * 2/3 + distance + (146 - 100), 115, 10, 4, 0, PI*2);
   // an arc that goes like a tube from the handle in to the pump
   
-
-
+  let x1 = G.WIDTH * 2/3 + distance + (146 - 100);
+  let x2 = G.WIDTH * 2/3 + distance + (146 - 105); // 82
+/*
+  color("red");
+  line(x1, 114, x1-10, 114, 3);
+  color("blue");
+  line(x1, 114, x2, 122, 3);
+  color("black");
+*/
   if (input.isPressed) {
-  line(227, 112, 218, 122,3);
+    line(x1, 114, x2, 122, 3);    
+    // for 300 = line(227, 112, 218, 122,3);
+    //line(227, 112, 218, 122,3);
   } else {
-  line(225, 115, 217, 115,3);
+    line(x1, 114, x1-10, 114, 3);
+    // for 300 = line(225, 115, 217, 115,3)
+    //line(225, 115, 217, 115,3);
+    //line(225-31, 115, 217-31, 115,3);
   }
 
   if (input.isJustReleased && handleReleased == false) {
