@@ -57,8 +57,8 @@ const literpris = 18.57;
 
 const goals = [
   {kr: 10*literpris, l: 10},
-  {kr: 300, l: 300/literpris},
-  {kr: 1000, l: 1000/literpris}
+  {kr: 300, l: parseFloat((300/literpris).toFixed(2))},//  totalPoint = parseFloat((totalPoint).toFixed(2));
+  {kr: 1000, l:  parseFloat((1000/literpris).toFixed(2))}
 ];
 
 let currentGoal = goals[0];
@@ -88,10 +88,15 @@ Object.defineProperty(this, "intro", {
   }
 });
 
-function update() {
+function update() {  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< UPDATE
   if (!ticks) {
     setup();
     this.intro = true;
+  }
+
+  if (day > 3) {
+    EndScreen();
+    return;
   }
 
   if (this.intro == true) {
@@ -125,6 +130,16 @@ function setup() {
   currentGoal = goals[day-1];
 }
 
+function EndScreen() {
+  color("black");
+  rect(0,0, G.WIDTH, G.HEIGHT);
+  color("white");
+  text("Score: " + score, G.WIDTH/2-50, G.HEIGHT/2-20, {scale:{x:2 , y:2}});
+  day = 0;
+  complete();
+
+}
+
 function getReady()
 {
   handleReleased = false; // Inte bra, men handle sätts i drawGasPumpHandle, så jag ids inte...
@@ -146,8 +161,9 @@ function drawIntro() {
   let animValue = clamp(introTimer * 0.01, 0, 1);
   drawIntroEnvironment();
   //move char a from left to the middle of the screen.
+  let daytext = day>goals.length-1 ? "Last day!" : "Day " + day;
   color("black");
-  text("Day " + day, G.WIDTH/2-30, easeOutCubic(animValue,-10,G.HEIGHT/2-80), {scale:{x:2 , y:2}});
+  text("" + daytext, G.WIDTH/2-30, easeOutCubic(animValue,-10,G.HEIGHT/2-80), {scale:{x:2 , y:2}});
   if (animValue > 0.9) {
     color("blue");
     text("You ned to tanka!", G.WIDTH/2-50, G.HEIGHT/2-50);
@@ -243,24 +259,43 @@ function drawClouds(ticks) {
   }
 }
 
+// TODO: Poängräkningen blir ju helt fel... Måste göras om.
 function calculateScore() {
   // the cloaser to the goal the more points
-  let krDiff = Math.abs(currentGoal.kr - currentKR);
-  let lDiff = Math.abs(currentGoal.l - currentL);
+  let krDiff = Math.abs(currentKR- currentGoal.kr);
+  let lDiff = Math.abs(currentL - currentGoal.l);
+console.log("krDiff: " + krDiff);
+console.log("lDiff: " + lDiff);
+
   let krPoints = Math.abs(100 - krDiff);
   let lPoints = Math.abs(100 - lDiff);
 
   let totalPoint = krPoints + lPoints;
   // make this to 2 decmals
   totalPoint = parseFloat((totalPoint).toFixed(2));
-    
+
+  score += totalPoint; 
   
   statefunk = function() {
-    color("green");
-    text("Points: " + (krPoints + lPoints), G.WIDTH/2-30, G.HEIGHT/2+10);
-    text("It was " + krDiff + " kr from the goal", G.WIDTH/2-30, G.HEIGHT/2+20);
-    end();
+    handleReleased = false;
+    scoreScreen("" + parseFloat((krDiff).toFixed(2)) + " kr from the goal", "Points: " + totalPoint); // ja, världens slappaste lösning jag veet...
   };
+  // set statefunk to NextLevel in 2 seconds
+  setTimeout(() => {
+    setup();
+    statefunk = tanka;
+  }, 2000);
+
+}
+
+function scoreScreen(diffText, totalPointText) {
+  color("light_black");
+  rect(0,0, G.WIDTH, G.HEIGHT);
+  drawCurrentGoal();
+  drawDisplay();
+  color("green");
+  text(diffText, G.WIDTH/2-30, G.HEIGHT/2+20);
+  text(totalPointText, G.WIDTH/2-30, G.HEIGHT/2+10);
 }
 
 function drawCurrentGoal() {
@@ -359,7 +394,7 @@ function tanka(){
   if (input.isPressed){
     tankaTimer++;
     //if(tankaTimer % 6 == 0){
-      currentKR+=0.15;    
+      currentKR+=0.15;
       //currentKR = parseFloat((currentKR + 0.01).toFixed(2));
       currentL = parseFloat((currentKR/literpris).toFixed(2));
     //}
@@ -380,9 +415,10 @@ function tanka(){
 function drawDisplay(){
   let roundL = parseFloat((currentL ).toFixed(2));
   let roundKR = parseFloat((currentKR ).toFixed(2));
-  color("black");
-  text("Kronor: " + currentKR, G.WIDTH/2-30, G.HEIGHT/2-10);
-  text("Liter: " + currentL, G.WIDTH/2-30, G.HEIGHT/2);
+
+//  color("black");
+//  text("Kronor: " + currentKR, G.WIDTH/2-30, G.HEIGHT/2-10);
+//  text("Liter: " + currentL, G.WIDTH/2-30, G.HEIGHT/2);
   color("blue");
 
   
