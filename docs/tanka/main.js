@@ -6,10 +6,10 @@ description = `Ett spel om att tanka.
 
 characters = [
 `
- lll
- llL
-llllll
-llllll
+ www
+ wwl
+wwwwww
+wwwwww
  l  l
 
 `, `
@@ -41,13 +41,14 @@ const G = {
 
 options = {
   viewSize: {x: G.WIDTH, y: G.HEIGHT},
-  //isPlayingBgm: true,
+  isPlayingBgm: true,
   //isReplayEnabled: true,
-  seed: 1,
+  isShowingScore: false,
+  seed: 6,
   theme: "shape",
 };
 
-
+let lowScore = 0;
 
 let currentKR = 0;
 let currentL = 0;
@@ -93,15 +94,20 @@ function update() {  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     setup();
     this.intro = true;
   }
+  
+// Jahapp. Det går alltså inte rita partiklar ovanpå rektanlar.
+//  let pos = vec(ticks%G.WIDTH,150);
+//  particle(pos,10,1);
 
   if (day > 3) {
     EndScreen();
     return;
   }
-
+  
   if (this.intro == true) {
-   drawIntro();
-   return;
+    drawIntro();
+    showScoreText();
+    return;
   }
 
   drawBgr2();
@@ -115,10 +121,29 @@ function update() {  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     calculateScore();
   }
 
+}
 
+function showScoreText(){
+  color("black");
+  text("" + score, 5, 5);
+//  text("Day: " + day, 3, 20);
+  color("black");
+  text("LO: " + lowScore, G.WIDTH-50, 5);
 }
 
 function setup() {
+
+  clouds = times(3, () => {
+    return {
+      pos: vec(rnd(0, G.WIDTH-100), rnd(0, G.HEIGHT)),
+      speed: 0.5,
+      verticalSpeed: 0.01         
+    };
+  });
+  clouds[0].speed = 0.3;
+  clouds[1].speed = 0.5;
+  clouds[2].speed = 0.2;
+
   console.log("setup" +day);
   day++;
   handleReleased = false;
@@ -131,11 +156,19 @@ function setup() {
 }
 
 function EndScreen() {
+  play("powerUp");
   color("black");
   rect(0,0, G.WIDTH, G.HEIGHT);
+  color("red");
+  text("You have reached the end of your journey!",5, G.HEIGHT/2-40, {scale:{x:1 , y:1}});
   color("white");
-  text("Score: " + score, G.WIDTH/2-50, G.HEIGHT/2-20, {scale:{x:2 , y:2}});
+  text("Score: " + score, G.WIDTH/2-80, G.HEIGHT/2-20, {scale:{x:2 , y:2}});
   day = 0;
+
+  if (score < lowScore || lowScore == 0) {
+    lowScore = score;
+  }
+
   complete();
 
 }
@@ -173,7 +206,10 @@ function drawIntro() {
   char("a", introX, 155, {scale: {x: 4, y: 4}});
   let col = char("b", G.WIDTH-100, 150, {scale: {x: 4, y: 4}});
   if (input.isPressed) {
-  introX++;
+    introX++;
+    color("white");
+    char("d", introX-20, 155, {scale: {x: rnd(0.5,2), y: 1}});
+    color("black");
   }
 
   introX = wrap(introX, 0, G.WIDTH);
@@ -234,7 +270,49 @@ function drawIntroEnvironment() {
 
 }
 
+// let cloud = {
+//   pos: vec(0, 0),
+//   speed: 0.5,
+//   verticalSpeed: 0.01
+// };
+
+let clouds = [];
+
 function drawClouds(ticks) {
+
+  color("white");
+  let verticalSpeed = 0.01;
+  let cloudYY = 20 + Math.sin(ticks * verticalSpeed*-1) * 5; // slapp lösning för varriation.
+  for (let i = 0; i < clouds.length; i++) {
+    if (clouds[i].pos.x > G.WIDTH+40) {
+      clouds[i].pos.x = rnd(-40,-15);    
+    }
+    clouds[i].pos.x = (clouds[i].pos.x + clouds[i].speed);
+    clouds[i].pos.y = 20 + Math.sin(ticks * verticalSpeed) * 10;
+  }
+
+      char("d", clouds[0].pos.x, cloudYY, {scale: {x:6, y:4}, rotation: 90});
+      char("d", clouds[1].pos.x, clouds[2].pos.y+10, {scale: {x:3, y:3}});
+      char("d", clouds[2].pos.x, 30-clouds[2].pos.y*0.2, {scale: {x:6, y:1},rotation: 3});
+}
+
+/*
+    let cloud = clouds[i];
+    cloud.pos.x = (ticks * cloud.speed) % G.WIDTH;
+    cloud.pos.y = 20 + Math.sin(ticks * verticalSpeed) * 10;
+    if (i === 0) {
+      char("d", cloud.pos.x, cloud.pos.y, {scale: {x:6, y:4}, rotation: 90});
+    } else if (i === 1) {
+      char("d", cloud.pos.x, cloud.pos.y+10, {scale: {x:3, y:3}});
+    } else {
+      char("d", cloud.pos.x, 30-cloud.pos.y*0.2, {scale: {x:6, y:1},rotation: 3});
+    }
+  }
+  */
+
+
+
+function drawClouds_old(ticks) {
   color("white");
 
   // Define the speeds for the three clouds
@@ -242,7 +320,7 @@ function drawClouds(ticks) {
 
   // Define the vertical motion speed
   let verticalSpeed = 0.01;
-
+  
   // Draw the three clouds
   for (let i = 0; i < 3; i++) {
     let cloudX = (ticks * cloudSpeeds[i]) % G.WIDTH;
@@ -264,38 +342,39 @@ function calculateScore() {
   // the cloaser to the goal the more points
   let krDiff = Math.abs(currentKR- currentGoal.kr);
   let lDiff = Math.abs(currentL - currentGoal.l);
-console.log("krDiff: " + krDiff);
-console.log("lDiff: " + lDiff);
+  //console.log("krDiff: " + krDiff);
+  //console.log("lDiff: " + lDiff);
 
-  let krPoints = Math.abs(100 - krDiff);
-  let lPoints = Math.abs(100 - lDiff);
+//  let krPoints = Math.abs(100 - krDiff);
+//  let lPoints = Math.abs(100 - lDiff);
 
-  let totalPoint = krPoints + lPoints;
+  let totalPoint = krDiff + lDiff;
   // make this to 2 decmals
   totalPoint = parseFloat((totalPoint).toFixed(2));
 
-  score += totalPoint; 
-  
+  score += totalPoint;
+  play("coin");
+
   statefunk = function() {
     handleReleased = false;
-    scoreScreen("" + parseFloat((krDiff).toFixed(2)) + " kr from the goal", "Points: " + totalPoint); // ja, världens slappaste lösning jag veet...
+    scoreScreen("" + parseFloat((krDiff).toFixed(2)) + " kr from goal\n\n"+parseFloat((lDiff).toFixed(2))+" l from goal", "Total: " + totalPoint); // ja, världens slappaste lösning för att visa skärm ett tag, jag veet...
   };
   // set statefunk to NextLevel in 2 seconds
   setTimeout(() => {
     setup();
     statefunk = tanka;
-  }, 2000);
+  }, 3000);
 
 }
 
 function scoreScreen(diffText, totalPointText) {
-  color("light_black");
+  color("purple");
   rect(0,0, G.WIDTH, G.HEIGHT);
   drawCurrentGoal();
   drawDisplay();
-  color("green");
-  text(diffText, G.WIDTH/2-30, G.HEIGHT/2+20);
-  text(totalPointText, G.WIDTH/2-30, G.HEIGHT/2+10);
+  color("white");
+  text(diffText, G.WIDTH/2-30, G.HEIGHT/2+10);
+  text(totalPointText, G.WIDTH/4, G.HEIGHT/2+40, {scale:{x:2 , y:2}});
 }
 
 function drawCurrentGoal() {
@@ -394,10 +473,15 @@ function tanka(){
   if (input.isPressed){
     tankaTimer++;
     //if(tankaTimer % 6 == 0){
-      currentKR+=0.15;
+      currentKR+=0.25;
       //currentKR = parseFloat((currentKR + 0.01).toFixed(2));
       currentL = parseFloat((currentKR/literpris).toFixed(2));
     //}
+      if (currentKR % 1 == 0){
+//        console.log(currentKR);
+        play("hit", {volume: .4});
+//        playMml("C4E4G4C4");    
+      }
   }
   /*
   if (input.isPressed) {
