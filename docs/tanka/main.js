@@ -46,6 +46,9 @@ options = {
   isShowingScore: false,
   seed: 6,
   theme: "shape",
+//    isCapturing: true,
+//  isCapturingGameCanvasOnly: true,
+//  captureCanvasScale: .2
 };
 
 let lowScore = 0;
@@ -75,6 +78,8 @@ let statefunk = tanka;
 let day = 0;
 let introTimer = 0;
 let _intro = true;
+let pumpX = 100;
+
 Object.defineProperty(this, "intro", {
   get: function() {
     return _intro;
@@ -82,9 +87,10 @@ Object.defineProperty(this, "intro", {
   },
   set: function(value) {
     _intro = value;
-    console.log("intro: " + _intro);
+   // console.log("intro: " + _intro);
     if (value == true) {
       introTimer = 0;
+      pumpX = rnd(50, 110);
     }
   }
 });
@@ -94,6 +100,9 @@ function update() {  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     setup();
     this.intro = true;
   }
+
+  // drawIntroPriceSign();
+  // return;
   
 // Jahapp. Det går alltså inte rita partiklar ovanpå rektanlar.
 //  let pos = vec(ticks%G.WIDTH,150);
@@ -128,7 +137,7 @@ function showScoreText(){
   text("" + score, 5, 5);
 //  text("Day: " + day, 3, 20);
   color("black");
-  text("LO: " + lowScore, G.WIDTH-50, 5);
+  text("LO: " + lowScore, G.WIDTH-64, 5);
 }
 
 function setup() {
@@ -144,7 +153,7 @@ function setup() {
   clouds[1].speed = 0.5;
   clouds[2].speed = 0.2;
 
-  console.log("setup" +day);
+  //console.log("setup" +day);
   day++;
   handleReleased = false;
   currentKR = 0;
@@ -184,7 +193,7 @@ function getReady()
   text("to tanka!", G.WIDTH/2-60, G.HEIGHT/2-20, {scale:{x:3 , y:3}});
   color("blue");
   text("Goal: " + currentGoal.kr + " kr", G.WIDTH/2-70, G.HEIGHT/2+30, {scale:{x:2 , y:2}});
-  text("Goal: " + currentGoal.l + " liter", G.WIDTH/2-70, G.HEIGHT/2+50, {scale:{x:2 , y:2}});
+  text("Goal: " + currentGoal.l + " L", G.WIDTH/2-70, G.HEIGHT/2+50, {scale:{x:2 , y:2}});
   color("black");
 }
 
@@ -212,6 +221,8 @@ function drawIntro() {
     color("black");
   }
 
+  drawIntroPriceSign();
+
   introX = wrap(introX, 0, G.WIDTH);
 
   if (col.isColliding.char.a) {
@@ -225,6 +236,21 @@ function drawIntro() {
       }, 2000);
     }
   }
+}
+
+function drawIntroPriceSign() {
+  let signX = G.WIDTH-55;
+  let signY = G.HEIGHT/2-30;
+  //drawIntroEnvironment();
+  color("black");
+  rect(signX,signY, 49, 25);
+  color("yellow");
+  text(" 95:\n " + literpris + "", signX+4, signY+10);
+  // draw a line from the bottom of the sign to the ground. Ground is at y150
+  color("black");
+  line(signX+25, signY+25, signX+25, 165, 6);
+  //col = char("b", G.WIDTH-pumpX, 150, {scale: {x: 4, y: 4}});
+
 }
 
 // eas in out function
@@ -353,11 +379,12 @@ function calculateScore() {
   totalPoint = parseFloat((totalPoint).toFixed(2));
 
   score += totalPoint;
+  score = parseFloat((score).toFixed(2));
   play("coin");
 
   statefunk = function() {
     handleReleased = false;
-    scoreScreen("" + parseFloat((krDiff).toFixed(2)) + " kr from goal\n\n"+parseFloat((lDiff).toFixed(2))+" l from goal", "Total: " + totalPoint); // ja, världens slappaste lösning för att visa skärm ett tag, jag veet...
+    scoreScreen("" + parseFloat((krDiff).toFixed(2)) + " kr from goal\n\n"+parseFloat((lDiff).toFixed(2))+" L from goal", "Total: " + totalPoint); // ja, världens slappaste lösning för att visa skärm ett tag, jag veet...
   };
   // set statefunk to NextLevel in 2 seconds
   setTimeout(() => {

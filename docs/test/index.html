@@ -9,6 +9,27 @@
   </head>
   <body>
     <h1>Testt</h1>
+    <br>
+    <div id="bensinpris"> idag kostar det </div>
+
+<script>
+// Hämta bensinpriset från API:et
+fetch('https://bensinprisidag.se/api/v1/prices.json')
+  .then(response => response.json())
+  .then(data => {
+    // Välj priset för en specifik kedja (t.ex. Tanka)
+    const tankaPrice = data.find(item => item.company === 'Tanka').price;
+
+    // Visa priset på din webbsida
+    document.getElementById('bensinpris').textContent = `Bensinpris hos Tanka: ${tankaPrice} kr`;
+  })
+  .catch(error => {
+    console.error('Fel vid hämtning av bensinpris:', error);
+  });
+
+
+
+</script>
 
   </body>
 </html>
