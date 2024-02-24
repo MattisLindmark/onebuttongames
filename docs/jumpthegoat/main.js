@@ -53,10 +53,10 @@ const G = {
 };
 
 options = {
-  viewSize: { x: G.WIDTH, y: G.HEIGHT }
+  viewSize: { x: G.WIDTH, y: G.HEIGHT },
   //isPlayingBgm: true,
   //isReplayEnabled: true,
-  //theme: "shape",
+  //theme: "crt"
   //    isCapturing: true,
   //  isCapturingGameCanvasOnly: true,
   //  captureCanvasScale: .2
@@ -79,20 +79,20 @@ options = {
 *@property { boolean } isJumping
 */
 
-let animals = [];
-let player = {
-  pos: vec(20, 50),
-  jumpforce: 0.0,
-  isJumping: false
-};
 
 const animalSpeed = 0.8;
-const maxJumpForce = 3;
+const maxJumpForce = 4;
 
 let cJumpForce = 0.0;
 let gravity = 0.1;
-let groundPlaneY = G.HEIGHT/2+8;
+let groundPlaneY = G.HEIGHT/2+38;
 
+let animals = [];
+let player = {
+  pos: vec(20, groundPlaneY-3),
+  jumpforce: 0.0,
+  isJumping: false
+};
 
 function update() {
   if (!ticks) {
@@ -113,7 +113,7 @@ function setup(){
     const posY = rnd(0, G.HEIGHT);
     return {
       // Creates a Vector
-      pos: vec(posX, 50),
+      pos: vec(posX, groundPlaneY-2),
       speed: rnd(G.ANIMAL_SPEED_MIN, G.ANIMAL_SPEED_MAX),
       sprite: spriteset[rndi(0, spriteset.length)],
       isGoat: false
@@ -175,12 +175,22 @@ function moveAnimals() {
       particle(s.pos);
       if (s.isGoat) {
         play("powerUp");
-        score ++;
+        if (!hasBeenGrounded) {
+          scorebonus ++;
+        } else {
+          scorebonus = 0;
+        }
+        
+        score = score +1+ scorebonus;
         cJumpForce = maxJumpForce;
         player.isJumping = true;
+        isGoatJump = true;
+        hasBeenGrounded = false;
+        color("yellow");
       } else {
         score --;
         play("explosion");
+        color("red");
       }
       particle(s.pos);
       s.pos.x = rnd(-10,-250);
@@ -196,16 +206,31 @@ function moveAnimals() {
 
 }
 
+let jumpForceBar = 0;
+let hasBeenGrounded = false;
+let isGoatJump = false;
+let scorebonus = 0;
 function movePlayer(){
     console.log(player.pos.y);
-    // a green bar that shows current jump force
-    color("green");
-    let jumpForceBar = clamp(cJumpForce*20, 1, 100);
-    rect(5, G.HEIGHT/2+10, jumpForceBar, 1);
-   // text(""+cJumpForce, 3, G.HEIGHT/2+12);
+    // a green bar that shows current jump force;
+
+    if (!player.isJumping || isGoatJump)
+    {
+      isGoatJump = false;
+      jumpForceBar = clamp(cJumpForce * 20, 1, 100);
+    }else{
+//      jumpForceBar = 80+cJumpForce - player.pos.y;
+      jumpForceBar -= .8;
+    }
+
+    color("green");  
+    rect(15, G.HEIGHT/2+10, jumpForceBar, 1);
+//    text(""+jumpForceBar, 3, G.HEIGHT/2+10);
+//    text("ply: " + player.pos.y, 3, G.HEIGHT/2+14);
     color("black");
   
   if (player.isJumping) {
+
     player.pos.y -= cJumpForce;
     cJumpForce -= gravity;
 
@@ -227,7 +252,7 @@ function movePlayer(){
   }
 
   if (input.isPressed) {
-    cJumpForce += 0.1;
+    cJumpForce += 0.05;
     if (cJumpForce > maxJumpForce) {
       cJumpForce = maxJumpForce;
     }
@@ -235,8 +260,10 @@ function movePlayer(){
 
   if (input.isJustReleased) {
     player.isJumping = true;
+    hasBeenGrounded = true;    
   }
-  char("a", player.pos);
+  char("a", player.pos).isColliding.rect.light_green;
+
 }
 
 function reset() {
