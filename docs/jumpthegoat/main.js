@@ -26,10 +26,12 @@ lllll
 l   l
 `,
   `
-    l l
-     ll
+   ll
+  l ll
+l   l
 lllll
 l   l
+
 `,  `
    rrrr
    rr
@@ -41,6 +43,19 @@ l  l
 l l l
 llllll
 l  l l
+`,`
+    l
+ l ll
+Llllll
+
+
+`,
+`
+
+ l
+Llllll
+   ll
+    l
 `
 
 ];
@@ -94,21 +109,64 @@ let player = {
   isJumping: false
 };
 
+let spawnBird = false;
+let bird;
+
+let debuggrnd = 0;
 function update() {
   if (!ticks) {
     setup();
   }
   
-//  moveJunk();
+  // if (ticks % 10 == 0) {
+  //   debuggrnd = rnd(-10,-250);
+  // }
+  // debuggrnd -= animalSpeed;
+  // char("e", debuggrnd, 30);
+  // return;
+
   drawEnviroment();  
   movePlayer();
   moveAnimals();
+
+  if (spawnBird) {
+    spawnBird = false;
+    bird = {
+      pos: vec(G.WIDTH, rnd(0, G.HEIGHT/2)),
+      speed: 1
+    };
+  }
+
+  if (bird) {
+    if (player.isJumping) {
+    bird.pos.x -= bird.speed;
+  }
+  if (bird.pos.x < 0) {
+    bird = null;
+  } else {
+      let birdChar = ticks % 20 < 10 ? "g" : "h";
+        if (char(birdChar, bird.pos).isColliding.char.b) {
+          play("hit");
+          score = score - 5;
+          bird = null;
+          cJumpForce = 0;
+        }
+    }
+  }
+
+  if (ticks % 100 == 0 && !bird) {
+    spawnBird = true;
+  }
+
+  // debugg informatio
+  // text("score: " + score, 3, 10);
+   text("sb: " + scorebonus, 3, 14);
 
 }
 
 function setup(){
   let spriteset = ["c", "e", "f"];
-  animals = times(5, () => {
+  animals = times(6, () => {
     const posX = rnd(30, G.WIDTH);
     const posY = rnd(0, G.HEIGHT);
     return {
@@ -123,12 +181,12 @@ function setup(){
   animals[0].sprite = "d";
   animals[1].isGoat = true;
   animals[1].sprite = "d";
-  
+  animals[2].isGoat = true;
+  animals[2].sprite = "d";
 
+// reset some stuff
+spawnBird = true;
 
-  // player = { 
-  //   pos: vec(20, 50)
-  // };
 }
 
 function drawEnviroment() {
@@ -141,10 +199,14 @@ function drawEnviroment() {
 function moveAnimals() {
   if (player.isJumping) {
     animals.forEach((s) => {
-      s.pos.x -= animalSpeed;//s.speed;
+      s.pos.x -= s.speed;// animalSpeed;//s.speed;
       //      s.pos.wrap(0, G.WIDTH, 0, G.HEIGHT);
       if (s.pos.x < 0) {
+        console.log("-- "+s.pos.x+" --");
         s.pos.x = G.WIDTH + rnd(3, 50);
+        console.log("NEW -- "+s.pos.x+" --");
+
+//        console.log("-- "+s.pos.x+" --");
 
         /* check if any animal is within 5 pixels of another // <---------------------------------------- TODO fix this check better.
         for (let i = 0; i < animals.length; i++) {
@@ -166,7 +228,9 @@ function moveAnimals() {
     // check if collission is between any sprite
     let isCharColliding = false;
     if (col.isColliding.char.a || col.isColliding.char.b || col.isColliding.char.c || col.isColliding.char.d || col.isColliding.char.e || col.isColliding.char.f) {
-      isCharColliding = true;
+      if (cJumpForce < 0.1) {
+        isCharColliding = true;
+      }
     }
 
     if (isCharColliding) {
@@ -193,12 +257,12 @@ function moveAnimals() {
         color("red");
       }
       particle(s.pos);
-      s.pos.x = rnd(-10,-250);
+//      s.pos.x = rndi(-10,-250);
+        s.pos.x = G.WIDTH + rnd(3, 50);
     } else {
-      s.pos.x = rndi(-10,-250);
+//      s.pos.x = rndi(-10,-250);
+//        s.pos.x = G.WIDTH + rnd(3, 50);
     }
-
-
   } else {
     //console.log("no char collision");
   }
@@ -210,8 +274,9 @@ let jumpForceBar = 0;
 let hasBeenGrounded = false;
 let isGoatJump = false;
 let scorebonus = 0;
+
 function movePlayer(){
-    console.log(player.pos.y);
+   // console.log(player.pos.y);
     // a green bar that shows current jump force;
 
     if (!player.isJumping || isGoatJump)
@@ -220,12 +285,12 @@ function movePlayer(){
       jumpForceBar = clamp(cJumpForce * 20, 1, 100);
     }else{
 //      jumpForceBar = 80+cJumpForce - player.pos.y;
-      jumpForceBar -= .8;
+      jumpForceBar -= 1;
     }
 
     color("green");  
-    rect(15, G.HEIGHT/2+10, jumpForceBar, 1);
-//    text(""+jumpForceBar, 3, G.HEIGHT/2+10);
+    rect(15, G.HEIGHT-5, jumpForceBar, 1);
+    //text(""+cJumpForce, 3, G.HEIGHT/2+10);
 //    text("ply: " + player.pos.y, 3, G.HEIGHT/2+14);
     color("black");
   
@@ -235,7 +300,7 @@ function movePlayer(){
     cJumpForce -= gravity;
 
     if (input.isJustPressed) {
-      cJumpForce -= 2;
+      cJumpForce -= 5; // var -2
     }
     
     if (player.pos.y > groundPlaneY-3) {
@@ -260,9 +325,9 @@ function movePlayer(){
 
   if (input.isJustReleased) {
     player.isJumping = true;
-    hasBeenGrounded = true;    
+    hasBeenGrounded = true;
   }
-  char("a", player.pos).isColliding.rect.light_green;
+  char("a", player.pos);//.isColliding.rect.light_green;
 
 }
 
