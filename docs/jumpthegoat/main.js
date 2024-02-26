@@ -26,9 +26,9 @@ lllll
 l   l
 `,
   `
-   ll
-  l ll
-l   l
+   gg
+  g gg
+l   g
 lllll
 l   l
 
@@ -39,10 +39,10 @@ llll
 l  l
 `,
 `
- y y y
+y y y
 l l l
 llllll
-l  l l
+l   l
 `,`
     l
  l ll
@@ -56,6 +56,13 @@ Llllll
 Llllll
    ll
     l
+`,`
+
+ r r
+rrrrr
+rrrrr
+ rrr
+  r
 `
 
 ];
@@ -112,6 +119,10 @@ let player = {
 let spawnBird = false;
 let bird;
 
+let life = 3;
+let energy = 5;
+let playtime = 0;
+
 let debuggrnd = 0;
 function update() {
   if (!ticks) {
@@ -124,6 +135,29 @@ function update() {
   // debuggrnd -= animalSpeed;
   // char("e", debuggrnd, 30);
   // return;
+
+  if (life < 1) {
+    end();
+  }
+
+  for (let i = 0; i < life; i++) {
+    char("i", 38+(i*8), 4);
+  }
+  // char("i", 40, 4);
+  // char("i", 48, 4);
+  // char("i", 56, 4);
+  
+if (player.isJumping) {
+  playtime++;
+}
+
+if (input.isJustPressed) {
+  energy --;
+}
+if (isGoatJump) {
+  energy =5;  
+}
+
 
   drawEnviroment();  
   movePlayer();
@@ -154,19 +188,19 @@ function update() {
     }
   }
 
-  if (ticks % 100 == 0 && !bird) {
+  if (playtime % 300 == 0 && !bird) {
     spawnBird = true;
   }
 
   // debugg informatio
   // text("score: " + score, 3, 10);
-   text("sb: " + scorebonus, 3, 14);
+   text("E: " + energy, 3, 14);
 
 }
 
 function setup(){
   let spriteset = ["c", "e", "f"];
-  animals = times(6, () => {
+  animals = times(8, () => {
     const posX = rnd(30, G.WIDTH);
     const posY = rnd(0, G.HEIGHT);
     return {
@@ -186,6 +220,8 @@ function setup(){
 
 // reset some stuff
 spawnBird = true;
+life = 3;
+playtime = 0;
 
 }
 
@@ -254,6 +290,7 @@ function moveAnimals() {
       } else {
         score --;
         play("explosion");
+        life --;
         color("red");
       }
       particle(s.pos);
