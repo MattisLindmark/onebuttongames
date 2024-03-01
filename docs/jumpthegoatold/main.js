@@ -1,7 +1,7 @@
- title = " Jump The Goat";
+// title = "Jump The Goat";
 
- description = `a turn based\n goatjumper
- `;
+// description = `
+// `;
 
 characters = [
   `
@@ -32,9 +32,9 @@ l   g
 lllll
 l   l
 
-`,`
-   CCCC
-   CC
+`,  `
+   rrrr
+   rr
 llll
 l  l
 `,
@@ -63,18 +63,12 @@ rrrrr
 rrrrr
  rrr
   r
-`,`
-   lyl
-   ly
-   yl
-ylyly
-lylyl
-l   l
 `
+
 ];
 
 const G = {
-  WIDTH: 100,
+  WIDTH: 110,
   HEIGHT: 90,
   ANIMAL_SPEED_MAX: 1,
   ANIMAL_SPEED_MIN: .5
@@ -107,15 +101,6 @@ options = {
 *@property { boolean } isJumping
 */
 
-let leveldata = {
-  newgame: true,
-  level: 1,
-  score: 0,
-  energy: 3,
-  life: 3,
-  nrOfGoats: 3,
-  nrOfAnimals: 8
-};
 
 const animalSpeed = 0.8;
 const maxJumpForce = 4;
@@ -134,26 +119,16 @@ let player = {
 let spawnBird = false;
 let bird;
 
-let life = leveldata.life;
-let energy = leveldata.energy;
+let life = 3;
+let energy = 5;
 let playtime = 0;
 
 let debuggrnd = 0;
-
-let FIRSTFRAME = true;
 function update() {
   if (!ticks) {
     setup();
   }
   
-if (FIRSTFRAME) {
-  if (input.isJustReleased) {
-    FIRSTFRAME = false;
-  }
-  drawEnviroment();
-  return;
-}
-
   // if (ticks % 10 == 0) {
   //   debuggrnd = rnd(-10,-250);
   // }
@@ -165,201 +140,90 @@ if (FIRSTFRAME) {
     end();
   }
 
-  
   for (let i = 0; i < life; i++) {
-    char("i", 38+(i*8), 7);
+    char("i", 38+(i*8), 4);
   }
   // char("i", 40, 4);
   // char("i", 48, 4);
   // char("i", 56, 4);
   
-  if (player.isJumping) {
-    playtime++;
-  }
-  
-  // if (input.isJustPressed) {
-    //   energy --;
-    // }
-    // if (isGoatJump) {
-      //   energy += 2;
-      //   if (energy > 5) {
-        //     energy = 5;}
-        // }
-        
-        
-        drawEnviroment();
-        movePlayer();
-        moveAnimals();
-        
-        if (spawnBird) {
-          spawnBird = false;
-          bird = {
-            pos: vec(G.WIDTH, rnd(0, G.HEIGHT/2)),
-            speed: 1
-          };
-        }
-        
-        if (bird) {
-          if (player.isJumping) {
-            bird.pos.x -= bird.speed;
-          }
-          if (bird.pos.x < 0) {
-            bird = null;
-          } else {
-            let birdChar = ticks % 20 < 10 ? "g" : "h";
-            if (char(birdChar, bird.pos).isColliding.char.b) {
-              play("hit");
-              score --;
-              energy --;
-              bird = null;
-              cJumpForce = 0;
-            }
-          }
-        }
-        
-        if (playtime % 1000 == 0) {
-          play("random");
-          checkAndRemoveGoat(); // if more than one goat is left, this will set one of them to turn next time it is out of game.
-        }
+if (player.isJumping) {
+  playtime++;
+}
 
-        text("PLtime: " + playtime, 3, 14);
-        if (playtime % 300 == 0 && !bird) {
-          let chance = difficulty *2;
-          if (chance > 9) {
-            chance = 9;
-          }
-          if (rndi(0, 10) < chance) {
-            spawnBird = true;
-          }
-        }
-        
-        if (energy < 0 && !player.isJumping) {
-          player.isJumping = false;
-          player.jumpforce = 0;
-          end("out of energy!");
-        }
-        // debugg informatio
-        // text("score: " + score, 3, 10);
-//        text("E: " + energy, 3, 14);
-        // draw a bar that shows the current energy
-        color("light_black");
-        rect(38, 12, 18, 2);
-        
-        let energyBar = energy*6;
-        color("yellow");
-        if (energy == 0) {
-          color("red");
-          energyBar = 3;
-        } else if (energy < 0) {
-          energyBar = 0;
-        }
-        rect(38, 12, energyBar, 2);
-        color("black");
-        
-      }
-      
-      function setup(){
-        let spriteset = ["c", "e", "f","j"];
-        //  let spriteset = ["j"];
-        let i = 0;
-        animals = times(leveldata.nrOfAnimals-leveldata.nrOfGoats, () => {
-          i++;
-          const posX = rnd(30, G.WIDTH);
-          const posY = rnd(0, G.HEIGHT);
-    // make a variable that loops thorugh the spriteset
-    // so that the sprites are not random
-    
-    let cSprite = spriteset[i%spriteset.length];
-    let h = 2;
-    if (cSprite == "j") {
-      h = 3;
-    }
+if (input.isJustPressed) {
+  energy --;
+}
+if (isGoatJump) {
+  energy =5;  
+}
 
-    return {
-      pos: vec(posX, groundPlaneY-h),
-      speed: rnd(G.ANIMAL_SPEED_MIN, G.ANIMAL_SPEED_MAX),      
-      sprite: cSprite,//spriteset[rndi(0, spriteset.length)],
-      isGoat: false,
-      turnToJ: false
+
+  drawEnviroment();  
+  movePlayer();
+  moveAnimals();
+
+  if (spawnBird) {
+    spawnBird = false;
+    bird = {
+      pos: vec(G.WIDTH, rnd(0, G.HEIGHT/2)),
+      speed: 1
     };
-  });
+  }
 
-  // add new goats to animals array
-  let goats = times(leveldata.nrOfGoats, () => {
+  if (bird) {
+    if (player.isJumping) {
+    bird.pos.x -= bird.speed;
+  }
+  if (bird.pos.x < 0) {
+    bird = null;
+  } else {
+      let birdChar = ticks % 20 < 10 ? "g" : "h";
+        if (char(birdChar, bird.pos).isColliding.char.b) {
+          play("hit");
+          score = score - 5;
+          bird = null;
+          cJumpForce = 0;
+        }
+    }
+  }
+
+  if (playtime % 300 == 0 && !bird) {
+    spawnBird = true;
+  }
+
+  // debugg informatio
+  // text("score: " + score, 3, 10);
+   text("E: " + energy, 3, 14);
+
+}
+
+function setup(){
+  let spriteset = ["c", "e", "f"];
+  animals = times(8, () => {
     const posX = rnd(30, G.WIDTH);
     const posY = rnd(0, G.HEIGHT);
     return {
       // Creates a Vector
       pos: vec(posX, groundPlaneY-2),
-      speed: rnd(G.ANIMAL_SPEED_MIN, G.ANIMAL_SPEED_MAX),      
-      sprite: "d",
-      isGoat: true,
-      turnToJ: false
+      speed: rnd(G.ANIMAL_SPEED_MIN, G.ANIMAL_SPEED_MAX),
+      sprite: spriteset[rndi(0, spriteset.length)],
+      isGoat: false
     };
   });
-
-  // put goats in the front of the array
-  animals = goats.concat(animals);
-  // move the animals with sprite J to the front of the array
-  let j = 0;
-  for (let i = 0; i < animals.length; i++) {
-    if (animals[i].sprite == "j") {
-      let temp = animals[i];
-      animals[i] = animals[j];
-      animals[j] = temp;
-      j++;
-    }
-  }
-
-
-
-
-
-
-  /*
   animals[0].isGoat = true;
   animals[0].sprite = "d";
   animals[1].isGoat = true;
   animals[1].sprite = "d";
   animals[2].isGoat = true;
   animals[2].sprite = "d";
-  */
 
 // reset some stuff
-spawnBird = false;
-life = leveldata.life;
+spawnBird = true;
+life = 3;
 playtime = 0;
-playtime ++;
-energy = leveldata.energy;
-jumpForceBar = 0;
-cJumpForce = 0;
-player.isJumping = false;
-player.pos = vec(20, groundPlaneY-3);
-score = 0;
-FIRSTFRAME = true;
 
 }
-
-function checkAndRemoveGoat() {
-  let goats = 0;
-  for (let i = 0; i < animals.length; i++) {
-    if (animals[i].isGoat && !animals[i].turnToJ) {
-      goats ++;
-    }
-  }
-  console.log("goats: "+goats);
-  if (goats > 1) {
-    // get the first goat and turn it into a j
-    for (let i = 0; i < animals.length; i++) {
-      if (animals[i].isGoat && animals[i].turnToJ == false) {
-        animals[i].turnToJ = true;
-        console.log("turning goat to J");
-        break;
-      }
-    }
-  }  
-}
-
 
 function drawEnviroment() {
     color("light_green");
@@ -374,17 +238,9 @@ function moveAnimals() {
       s.pos.x -= s.speed;// animalSpeed;//s.speed;
       //      s.pos.wrap(0, G.WIDTH, 0, G.HEIGHT);
       if (s.pos.x < 0) {
-//        console.log("-- "+s.pos.x+" --");
+        console.log("-- "+s.pos.x+" --");
         s.pos.x = G.WIDTH + rnd(3, 50);
-//        console.log("NEW -- "+s.pos.x+" --");
-        s.speed = rnd(G.ANIMAL_SPEED_MIN, G.ANIMAL_SPEED_MAX);
-
-        if (s.turnToJ) {
-          s.sprite = "j";
-          s.turnToJ = false;
-          s.isGoat = false;
-          s.pos.y = groundPlaneY-3;
-        }
+        console.log("NEW -- "+s.pos.x+" --");
 
 //        console.log("-- "+s.pos.x+" --");
 
@@ -403,12 +259,7 @@ function moveAnimals() {
       }
     });
   }
-  let lifeLimiter = life; // We will limit lifeloss to 1 per frame
-
   animals.forEach((s) => {    
-    if (s.turnToJ) {
-      color("red");
-    }else{ color("black");}
     let col = char(s.sprite, s.pos, {mirror: {x: -1, y: 1}});
     // check if collission is between any sprite
     let isCharColliding = false;
@@ -417,8 +268,9 @@ function moveAnimals() {
         isCharColliding = true;
       }
     }
-    
+
     if (isCharColliding) {
+
     if (col.isColliding.char.a || col.isColliding.char.b) {
       particle(s.pos);
       if (s.isGoat) {
@@ -433,10 +285,6 @@ function moveAnimals() {
         cJumpForce = maxJumpForce;
         player.isJumping = true;
         isGoatJump = true;
-        energy ++;
-        if (energy > leveldata.energy) {
-          energy = leveldata.energy;
-        }
         hasBeenGrounded = false;
         color("yellow");
       } else {
@@ -446,18 +294,16 @@ function moveAnimals() {
         color("red");
       }
       particle(s.pos);
-      color("black");
 //      s.pos.x = rndi(-10,-250);
         s.pos.x = G.WIDTH + rnd(3, 50);
+    } else {
+//      s.pos.x = rndi(-10,-250);
+//        s.pos.x = G.WIDTH + rnd(3, 50);
     }
   } else {
     //console.log("no char collision");
   }
   });
-
-  if (life < lifeLimiter-1) {
-    life = lifeLimiter-1;
-  }
 
 }
 
@@ -516,7 +362,6 @@ function movePlayer(){
 
   if (input.isJustReleased) {
     player.isJumping = true;
-    energy --;
     hasBeenGrounded = true;
   }
   char("a", player.pos);//.isColliding.rect.light_green;

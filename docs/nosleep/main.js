@@ -1,7 +1,7 @@
-// title = "NoSleep";
+ title = "NoSleep";
 
-// description = `Dont let your focus get out of your head circle!
-// `;
+ description = `Dont let your focus\n escape your head circle!
+ `;
 
 characters = [
   `
@@ -26,6 +26,7 @@ options = {
   //    isCapturing: true,
   //  isCapturingGameCanvasOnly: true,
   //  captureCanvasScale: .2
+  seed: 5
 };
 
 let ball = {
@@ -241,25 +242,24 @@ let rotateSpeed = 0.04;
 let rotation = 0;
 let gap = 0;
 let lastCollision = 0;
-//let rotDamp = 0;
+//let rotateDir = 1;
 function draArc() {
   lastCollision++;
   // using arc, draw a circle in the middle of the screen, as big as it can be without going off screen
   // Every 100 thick the circle will get smaller
   // there should be an opening in the circle that moves around the circle
-  //rotDamp += 0.1;
 
   let wantedRotationSpeed = levelData.rotateSpeed;
-  //rotDamp = Math.min(Math.max(rotDamp, -1), 1);
+
   if (input.isPressed) { // Annars *= -1
-//    rotateSpeed = (levelData.rotateSpeed)*rotDamp;
     wantedRotationSpeed = (levelData.rotateSpeed)*-1;
- //   rotDamp -= 0.2;
   } else {
     wantedRotationSpeed = levelData.rotateSpeed;
-//    rotateSpeed = (levelData.rotateSpeed)*rotDamp;
-//    rotDamp += 0.2;
   }
+
+  // if (input.isJustPressed) {
+  //   rotateDir *= -1;
+  // }
 
   rotateSpeed = lerp(rotateSpeed, wantedRotationSpeed, 0.1);
  
@@ -279,6 +279,9 @@ function draArc() {
   }
 
   // arc is rotating with speed
+  // if (input.isPressed) {
+  //   rotation += rotateSpeed;
+  // }
   rotation += rotateSpeed;
   color("black");
   //let col = arc(G.WIDTH / 2, G.HEIGHT / 2, radius, 3, rotation, rotation + gap - 1.9 * PI,);
