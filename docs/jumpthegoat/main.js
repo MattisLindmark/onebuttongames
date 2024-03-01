@@ -145,6 +145,8 @@ let playtime = 0;
 let combo = 0;
 let hiCombo = 0;
 
+let displayHiCombo = 0;
+
 let debuggrnd = 0;
 
 let FIRSTFRAME = true;
@@ -264,10 +266,10 @@ if (GLOBAL_goatCount < 2) { // Lazy fix, when only one goat is left that one doe
         text("" + leveldata.level, G.WIDTH/2-20, 9, {scale: {x: 2, y: 2}});
         color("black");
         text("" +combo, 3, 9,{scale: {x: 1, y: 1}});
-        if (hiCombo>9) {       
-        text("HC " +hiCombo, G.WIDTH-31,9,{scale: {x: 1, y: 1}});
+        if (displayHiCombo>9) {       
+        text("HC " +displayHiCombo, G.WIDTH-31,9,{scale: {x: 1, y: 1}});
         } else {
-        text("HC " +hiCombo, G.WIDTH-25,9,{scale: {x: 1, y: 1}});
+        text("HC " +displayHiCombo, G.WIDTH-25,9,{scale: {x: 1, y: 1}});
         }
 
 
@@ -310,6 +312,7 @@ if (GLOBAL_goatCount < 2) { // Lazy fix, when only one goat is left that one doe
       
 
       function setup(){
+        displayHiCombo = hiCombo;
         C_ANIMAL_SPEED_MAX = G.ANIMAL_SPEED_MAX;
         C_ANIMAL_SPEED_MIN = G.ANIMAL_SPEED_MIN;
 
