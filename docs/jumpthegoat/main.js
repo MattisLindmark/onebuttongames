@@ -77,8 +77,11 @@ const G = {
   WIDTH: 100,
   HEIGHT: 90,
   ANIMAL_SPEED_MAX: 1,
-  ANIMAL_SPEED_MIN: .5
+  ANIMAL_SPEED_MIN: 1
 };
+
+let C_ANIMAL_SPEED_MAX = 1;
+let C_ANIMAL_SPEED_MIN = 1;
 
 options = {
   viewSize: { x: G.WIDTH, y: G.HEIGHT },
@@ -116,6 +119,8 @@ let leveldata = {
   nrOfGoats: 3,
   nrOfAnimals: 8
 };
+let GLOBAL_goatCount = leveldata.nrOfGoats;
+
 
 const animalSpeed = 0.8;
 const maxJumpForce = 4;
@@ -137,10 +142,14 @@ let bird;
 let life = leveldata.life;
 let energy = leveldata.energy;
 let playtime = 0;
+let combo = 0;
+let hiCombo = 0;
 
 let debuggrnd = 0;
 
 let FIRSTFRAME = true;
+let CHEATMODE = false;
+
 function update() {
   if (!ticks) {
     setup();
@@ -161,7 +170,10 @@ if (FIRSTFRAME) {
   // char("e", debuggrnd, 30);
   // return;
 
-  if (life < 1) {
+  if (life < 1 && !CHEATMODE) {
+    if (combo > hiCombo) {
+      hiCombo = combo;
+    }
     end();
   }
 
@@ -177,6 +189,16 @@ if (FIRSTFRAME) {
     playtime++;
   }
   
+if (GLOBAL_goatCount < 2) { // Lazy fix, when only one goat is left that one does not go to slow.
+  for (let i = 0; i < animals.length; i++) {
+    if (animals[i].isGoat) {
+      if (animals[i].speed < 0.9) {
+        animals[i].speed = 1;
+      }
+    }
+  }
+}
+
   // if (input.isJustPressed) {
     //   energy --;
     // }
@@ -194,7 +216,7 @@ if (FIRSTFRAME) {
         if (spawnBird) {
           spawnBird = false;
           bird = {
-            pos: vec(G.WIDTH, rnd(0, G.HEIGHT/2)),
+            pos: vec(G.WIDTH, rnd(5, G.HEIGHT/2)),
             speed: 1
           };
         }
@@ -216,15 +238,41 @@ if (FIRSTFRAME) {
             }
           }
         }
+
+       // text("pt" + playtime, 3, G.HEIGHT-5);
         
-        if (playtime % 1000 == 0) {
+        if (playtime % 600 == 0) {
+          score += leveldata.level;
+          leveldata.level ++;
           play("random");
-          checkAndRemoveGoat(); // if more than one goat is left, this will set one of them to turn next time it is out of game.
+          C_ANIMAL_SPEED_MAX += 0.2;
+          C_ANIMAL_SPEED_MIN -= 0.1;
+                   // Limit MIN to 0.5 at the lowest. And MAX to 2 at the highest
+          if (C_ANIMAL_SPEED_MIN < 0.5) {
+            C_ANIMAL_SPEED_MIN = 0.5;
+          }
+          if (C_ANIMAL_SPEED_MAX > 1.6) {
+            C_ANIMAL_SPEED_MAX = 1.6;
+          }
+          if (leveldata.level > 2) {
+           checkAndRemoveGoat(); // if more than one goat is left, this will set one of them to turn next time it is out of game.
+          }
         }
 
-        text("PLtime: " + playtime, 3, 14);
-        if (playtime % 300 == 0 && !bird) {
-          let chance = difficulty *2;
+// Debugg        text("l:" + leveldata.level+" - "+C_ANIMAL_SPEED_MAX+" - "+C_ANIMAL_SPEED_MIN, 3, 16);
+        color("light_black");
+        text("" + leveldata.level, G.WIDTH/2-20, 9, {scale: {x: 2, y: 2}});
+        color("black");
+        text("" +combo, 3, 9,{scale: {x: 1, y: 1}});
+        if (hiCombo>9) {       
+        text("HC " +hiCombo, G.WIDTH-31,9,{scale: {x: 1, y: 1}});
+        } else {
+        text("HC " +hiCombo, G.WIDTH-25,9,{scale: {x: 1, y: 1}});
+        }
+
+
+        if (playtime % 200 == 0 && !bird) {
+          let chance = leveldata.level *2;
           if (chance > 9) {
             chance = 9;
           }
@@ -233,9 +281,12 @@ if (FIRSTFRAME) {
           }
         }
         
-        if (energy < 0 && !player.isJumping) {
+        if (energy < 0 && !player.isJumping && !CHEATMODE) {
           player.isJumping = false;
           player.jumpforce = 0;
+          if (combo > hiCombo) {
+            hiCombo = combo;
+          }
           end("out of energy!");
         }
         // debugg informatio
@@ -254,18 +305,21 @@ if (FIRSTFRAME) {
           energyBar = 0;
         }
         rect(38, 12, energyBar, 2);
-        color("black");
-        
+        color("black");      
       }
       
+
       function setup(){
+        C_ANIMAL_SPEED_MAX = G.ANIMAL_SPEED_MAX;
+        C_ANIMAL_SPEED_MIN = G.ANIMAL_SPEED_MIN;
+
         let spriteset = ["c", "e", "f","j"];
         //  let spriteset = ["j"];
         let i = 0;
         animals = times(leveldata.nrOfAnimals-leveldata.nrOfGoats, () => {
           i++;
           const posX = rnd(30, G.WIDTH);
-          const posY = rnd(0, G.HEIGHT);
+          //const posY = rnd(0, G.HEIGHT);
     // make a variable that loops thorugh the spriteset
     // so that the sprites are not random
     
@@ -277,7 +331,7 @@ if (FIRSTFRAME) {
 
     return {
       pos: vec(posX, groundPlaneY-h),
-      speed: rnd(G.ANIMAL_SPEED_MIN, G.ANIMAL_SPEED_MAX),      
+      speed: rnd(C_ANIMAL_SPEED_MIN, C_ANIMAL_SPEED_MAX),      
       sprite: cSprite,//spriteset[rndi(0, spriteset.length)],
       isGoat: false,
       turnToJ: false
@@ -287,11 +341,11 @@ if (FIRSTFRAME) {
   // add new goats to animals array
   let goats = times(leveldata.nrOfGoats, () => {
     const posX = rnd(30, G.WIDTH);
-    const posY = rnd(0, G.HEIGHT);
+    //const posY = rnd(0, G.HEIGHT);
     return {
       // Creates a Vector
       pos: vec(posX, groundPlaneY-2),
-      speed: rnd(G.ANIMAL_SPEED_MIN, G.ANIMAL_SPEED_MAX),      
+      speed: rnd(C_ANIMAL_SPEED_MIN, C_ANIMAL_SPEED_MAX),      
       sprite: "d",
       isGoat: true,
       turnToJ: false
@@ -337,23 +391,39 @@ player.isJumping = false;
 player.pos = vec(20, groundPlaneY-3);
 score = 0;
 FIRSTFRAME = true;
+leveldata.level = 1;
+GLOBAL_goatCount = leveldata.nrOfGoats;
+scorebonus = 0;
+combo = 0;
 
+/*
+let jumpForceBar = 0;
+let hasBeenGrounded = false;
+let isGoatJump = false;
+let scorebonus = 0;
+let combo = 0;
+*/
 }
 
 function checkAndRemoveGoat() {
+  if (GLOBAL_goatCount < 2) {
+    return;
+  }
+
   let goats = 0;
   for (let i = 0; i < animals.length; i++) {
     if (animals[i].isGoat && !animals[i].turnToJ) {
       goats ++;
     }
   }
-  console.log("goats: "+goats);
+  GLOBAL_goatCount = goats;
+  //console.log("goats: "+goats);
   if (goats > 1) {
     // get the first goat and turn it into a j
     for (let i = 0; i < animals.length; i++) {
       if (animals[i].isGoat && animals[i].turnToJ == false) {
         animals[i].turnToJ = true;
-        console.log("turning goat to J");
+//        console.log("turning goat to J");
         break;
       }
     }
@@ -375,9 +445,9 @@ function moveAnimals() {
       //      s.pos.wrap(0, G.WIDTH, 0, G.HEIGHT);
       if (s.pos.x < 0) {
 //        console.log("-- "+s.pos.x+" --");
-        s.pos.x = G.WIDTH + rnd(3, 50);
+        s.pos.x = G.WIDTH + rnd(3, 120);
 //        console.log("NEW -- "+s.pos.x+" --");
-        s.speed = rnd(G.ANIMAL_SPEED_MIN, G.ANIMAL_SPEED_MAX);
+        s.speed = rnd(C_ANIMAL_SPEED_MIN, C_ANIMAL_SPEED_MAX);
 
         if (s.turnToJ) {
           s.sprite = "j";
@@ -403,11 +473,11 @@ function moveAnimals() {
       }
     });
   }
-  let lifeLimiter = life; // We will limit lifeloss to 1 per frame
+  let lifeLimiter = life; // We will limit lifeloss to 1 per frame  
 
   animals.forEach((s) => {    
     if (s.turnToJ) {
-      color("red");
+      color("green");
     }else{ color("black");}
     let col = char(s.sprite, s.pos, {mirror: {x: -1, y: 1}});
     // check if collission is between any sprite
@@ -428,8 +498,22 @@ function moveAnimals() {
         } else {
           scorebonus = 0;
         }
-        
+
+        if (scorebonus+1 > combo) {
+          combo = scorebonus+1;
+        }
+
+
         score = score +1+ scorebonus;
+        if (scorebonus == 4) {
+          play("coin");
+          life ++;
+          if (life > leveldata.life) {
+            life = leveldata.life;
+          }
+
+        //  console.log("life bonus");
+        }
         cJumpForce = maxJumpForce;
         player.isJumping = true;
         isGoatJump = true;
@@ -447,8 +531,8 @@ function moveAnimals() {
       }
       particle(s.pos);
       color("black");
-//      s.pos.x = rndi(-10,-250);
-        s.pos.x = G.WIDTH + rnd(3, 50);
+      s.pos.x = -10;
+//        s.pos.x = G.WIDTH + rnd(3, 50);
     }
   } else {
     //console.log("no char collision");
@@ -465,6 +549,7 @@ let jumpForceBar = 0;
 let hasBeenGrounded = false;
 let isGoatJump = false;
 let scorebonus = 0;
+
 
 function movePlayer(){
    // console.log(player.pos.y);
