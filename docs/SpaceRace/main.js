@@ -111,19 +111,20 @@ function setup() {
 function addRocks(ammount = 10) {
 
   let rocksprites = ["b","c","d","e"];
-
-  for (let i = 0; i < ammount; i++) {
   
-    let rndvalue = rndi(2, 6) * 0.5;
+  
+
+  for (let i = 0; i < ammount; i++) {  
+    let rndvalue = rndi(2, 6) * 0.5; // 1-3 with 0.5 steps.
     //let rndScale = rnd(1, 3); // <--- TODO: RND mellan några fasta världen. med 0.5 steg.
     // pick the next rock-sprite
     let spr = rocksprites[i % rocksprites.length];
     let rock = {
       pos: vec(rnd(0, G.WIDTH), rnd(G.HEIGHT*-1, 0)),
-      speed: rnd(0.5, 1.5),
+      speed: 2.5-rndvalue,//rnd(0.4, 1.2),
       isActive: true,
       size: vec(rndvalue, rndvalue),
-      rotation: rndi(0,3),//rnd(-1, 0.5),
+      rotation: rndi(0,3),
       sprite: spr
     };
     rocks.push(rock);
@@ -154,15 +155,24 @@ function drawStarfield() {
 // TODO
 }
 
+let currentDirection = player.direction;
 function movePlayer()
 {
   if (input.isJustPressed) {
     player.direction *= -1;
   }
-  player.pos.x += player.speed * player.direction;
+
+  // lerp current direction
+  currentDirection = lerp(currentDirection,player.direction, 0.2);
+
+  player.pos.x += player.speed * currentDirection;
   //player.pos.x = clamp(player.pos.x, 0, G.WIDTH);
   player.pos.x = wrap(player.pos.x, 0, G.WIDTH);
 
+}
+
+function lerp(start, end, amt) {
+  return (1 - amt) * start + amt * end;
 }
 
 function drawPlayer()
@@ -222,7 +232,7 @@ function checkCollisions(coldata)
       player.pos.y += 10;
       particle(player.pos, 10, 2);
     }
-    coldata.rock.pos.y = rnd(G.HEIGHT*-1, 0);  
+    coldata.rock.pos.y = rnd(G.HEIGHT*-1, 0);
   }
 }
 }
