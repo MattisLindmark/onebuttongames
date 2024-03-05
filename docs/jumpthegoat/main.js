@@ -384,6 +384,7 @@ if (GLOBAL_goatCount < 2) { // Lazy fix, when only one goat is left that one doe
 
 // reset some stuff
 spawnBird = false;
+bird = null;
 life = leveldata.life;
 playtime = 0;
 playtime ++;
