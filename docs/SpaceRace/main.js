@@ -108,16 +108,22 @@ let starts = [];
 
 let rocks = [];
 
-
+let DEBUGG = 0;
 function update() {
   if (!ticks) {
     setup();
     //setupRocks();
   }
 
-  //drawStarfield();
-//  particle(50,50, .5, 1,3,.5);
-
+/* //=== What the heck is up with the particles? Find out here! ===
+  if (input.isJustPressed) {
+    DEBUGG ++;
+  }
+  color("yellow");
+  particle(50,50, 5, 2,33,DEBUGG);
+  color("black");
+  text("Dbg: " + DEBUGG, 3, 10);
+*/
   drawBgr();
   movePlayer();
   drawPlayer();
@@ -127,6 +133,10 @@ function update() {
 }
 
 function drawBgr() {
+  drawStarfield();
+}
+
+function drawStarfield() {
   starts.forEach((star) => {
     star.pos.y += star.speed;
     color (star.color);
@@ -137,12 +147,14 @@ function drawBgr() {
       star.pos.x = rnd(0, G.WIDTH);
     }
   });
-
-
-
 }
+  
 
 function setup() {
+
+  ResetStuff();
+
+
   player = {
     pos: vec(G.WIDTH * 0.5, G.HEIGHT-(G.HEIGHT/4)),
     speed: 1.2,
@@ -164,11 +176,55 @@ function setup() {
   starts[rndi(0, starts.length)].color = "yellow";
 
   rocks = [];
-  addRocks(10);
+  addRocksB(2);
   addBoosters(3);
 }
 
+function ResetStuff() {
+  levelData = {
+    level: 1,
+    score: 0,
+    lives: 3,
+    rocks: 10,
+    boosters: 3,
+    globalspeed: 1,  
+  };
+}
+
+// function pseudoRandom(seed) {
+//   const x = Math.sin(seed++) * 10000;
+//   return x - Math.floor(x);
+// }
+
+function addRocksB(ammount = 3) {
+  let rocksprites = ["b","c","d","e"];
+  let value = 1;// rndi(2, 6) * 0.5; // 1-3 with 0.5 steps.
+  
+  for (let t = 0; t < 3; t++) {    
+    for (let i = 0; i < ammount; i++) {
+      // pick the next rock-sprite
+      let spr = rocksprites[i % rocksprites.length];
+      let rock = {
+        pos: vec(rnd(0, G.WIDTH), rnd(G.HEIGHT * -1, 0)),
+        speed: (t==ammount-1)? 0.5:1,  //1+(ammount*0.5)-value,
+        isActive: true,
+        size: vec(value, value),
+        rotation: rndi(0, 3),
+        sprite: spr,
+        isBig: false
+      };
+      console.log(rock.speed);
+      rocks.push(rock);
+    }
+    value += 0.5;
+  }
+
+}
+
 function addRocks(ammount = 10) {
+
+  // Documentation for the rocksprites
+  // 2024-03-06: Stenarna slumpas. I andra loopen får de stora lägst fart medan andra får global-speed i fart.
 
   let rocksprites = ["b","c","d","e"];
   
@@ -184,17 +240,24 @@ function addRocks(ammount = 10) {
       isActive: true,
       size: vec(rndvalue, rndvalue),
       rotation: rndi(0,3),
-      sprite: spr
+      sprite: spr,
+      isBig: false
     };
     rocks.push(rock);
   }
-  // loop through rocks and make rocks with speed <0.01 have a speed of 1 instead and use the sprite "h"
+  // loop through rocks and make rocks with speed <0.01 have a speed of 1 instead and use the sprite "h" (for debugg)
+
   rocks.forEach((rock) => {
-    console.log(rock.speed);
+    console.log(rock.size.x);
+    if (rock.speed > 0) {
+      rock.speed = levelData.globalspeed;
+    }
+
     if (rock.speed == 0) {
-      rock.speed = .5;
+      rock.isBig = true;
+      rock.speed = levelData.globalspeed* 0.5;
       rock.rotation = 0;
-      rock.pos.y = rnd(-30, 0);
+      rock.pos.y = rnd(-60, 0);
 //      rock.sprite = "h";
     }
     if (rock.speed > 1.4) {
@@ -222,10 +285,6 @@ function addBoosters(ammount = 3) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
-}
-
-function drawStarfield() {
-// TODO
 }
 
 let currentDirection = player.direction;
@@ -326,6 +385,7 @@ function drawRocks()
       coldata.col = tmpcol;
       coldata.rock = rock;
     }
+//    rock.speed = rock.isBig? difficulty * 0.5 : difficulty;
 //    char(rock.sprite, rock.pos, {scale: {x: rock.size.x, y: rock.size.y}, rotation: rotation*rock.rotation});
   });
   if (coldata.col != null) {
@@ -339,8 +399,12 @@ function checkCollisions(coldata)
   if (coldata.col.isColliding.char.a) {
     if (coldata.rock.sprite == "f") {
       play("coin");
-      player.pos.y -= 10;
-      particle(player.pos, 10, 3);
+      player.pos.y -= 10; //5, 2,33,DEBUGG
+      color("yellow");
+      particle(player.pos, 5, 3, 33, 0.5);
+      color("black");
+      particle(player.pos, 5, 2, 33, 0.2);
+
     } else {
       play("hit");
       player.pos.y += 10;
