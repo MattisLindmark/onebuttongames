@@ -1,0 +1,84 @@
+{
+    "companies": [
+        {
+            "name": "PixelPulse Games",
+            "catchphrase": "Known for their retro-inspired pixel art and pulse-pounding action games."
+        },
+        {
+            "name": "NeonArcade Studios",
+            "catchphrase": "Specializing in neon-infused arcade experiences that transport players back to the golden age of gaming."
+        },
+        {
+            "name": "CyberByte Interactive",
+            "catchphrase": "Makers of futuristic cyberpunk titles with a one-button twist."
+        },
+        {
+            "name": "GalaxyGlide Games",
+            "catchphrase": "Crafting interstellar adventures that fit into a single button press."
+        },
+        {
+            "name": "SynthWave Studios",
+            "catchphrase": "Synthesizing nostalgia and adrenaline in their arcade gems."
+        },
+        {
+            "name": "QuantumQuarters",
+            "catchphrase": "Pioneers of quantum mechanics-based gameplay, all within a single button’s reach."
+        },
+        {
+            "name": "RetroRush Entertainment",
+            "catchphrase": "Reviving classic gameplay mechanics for a new generation."
+        },
+        {
+            "name": "ArcadeAlchemy",
+            "catchphrase": "Turning simple inputs into magical gaming elixirs."
+        },
+        {
+            "name": "VoxelVelocity",
+            "catchphrase": "Sculpting voxel worlds with precision and speed."
+        },
+        {
+            "name": "RetroWave Games",
+            "catchphrase": "Their games make you feel like you’re playing on an old-school CRT monitor."
+        },
+        {
+            "name": "QuantumPixel Games",
+            "catchphrase": "Merging quantum physics with pixelated adventures."
+        },
+        {
+            "name": "RetroRumble Studios",
+            "catchphrase": "Creating games that make your joystick shake."
+        },
+        {
+            "name": "CyberCircuit Interactive",
+            "catchphrase": "Navigating digital mazes with a single button."
+        },
+        {
+            "name": "GalacticGlide Games",
+            "catchphrase": "Soaring through cosmic challenges in 8-bit glory."
+        },
+        {
+            "name": "SynthStrike Entertainment",
+            "catchphrase": "Synthesizing soundtracks and high-octane gameplay."
+        },
+        {
+            "name": "VoxelVortex",
+            "catchphrase": "Spinning voxel worlds into existence."
+        },
+        {
+            "name": "BlipBlast Arcade",
+            "catchphrase": "Where blips become epic explosions."
+        },
+        {
+            "name": "NeonNostalgia",
+            "catchphrase": "A neon-lit journey back to the arcade era."
+        },
+        {
+            "name": "PixelPunch Studios",
+            "catchphrase": "Delivering knockout hits in pixel form."
+        },
+        {
+            "name": "ArcadeAlchemy",
+            "catchphrase": "Crafting magic from simple inputs, one game at a time."
+        }
+    ]
+}

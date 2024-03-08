@@ -5,6 +5,7 @@
 //var fs = require('fs');
 //var path = require('path');
 var path = "titles.json";
+var companiesPath = "companies.json";
 var gamePath = "https://mattislindmark.github.io/onebuttongames/?";
 
 let titles = [];
@@ -13,9 +14,9 @@ fetch(path)
   .then(data => {
     // Now data is the parsed JSON object from the URL
     titles = data.games;
-    console.log(titles);
+    //console.log(titles);
     printTheHTML(titles);    
-    console.log("hoj"+titles[0].title);
+    //console.log("hoj"+titles[0].title);
   })
   .catch(error => console.error('Error:', error));
 
@@ -35,6 +36,8 @@ fetch(path)
         </div>`;
     });
     document.getElementById("games").innerHTML = html;
+    let str = randomCompany();
+    document.getElementById("footer").innerHTML= str;    
 }
 
 function getRandomColor() {
@@ -68,6 +71,25 @@ function getRandomNiceColor() {
 
   return niceColors[Math.floor(Math.random() * niceColors.length)];
 }
+
+function randomCompany() {
+  let companiesPath = './companies.json'; // adjust the path if needed
+  let str = "<p>© 2024 One Button Games</p>";
+  fetch(companiesPath)
+    .then(response => response.json())
+    .then(data => {
+      let companies = data.companies;
+      let randomCompany = companies[Math.floor(Math.random() * companies.length)];
+      str = `<p>© 1985 ${randomCompany.name} - ${randomCompany.catchphrase}</p>`;
+      document.getElementById("footer").innerHTML= str;
+    })
+    .catch(err => console.error(err));
+
+    return str;
+}
+
+
+
 
 //         <div class="boxart" style="--boxart-url('../${title.folderName}/boxart.jpg')">test</div>
 

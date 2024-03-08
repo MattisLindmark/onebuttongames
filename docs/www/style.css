@@ -57,6 +57,17 @@ header {
     margin-right: 0px;
 }
 
+footer {
+    background-color: #2A4765;
+    color: rgb(147, 238, 188);
+    text-align: center;
+    padding: 5px;
+    margin: 10px;
+    margin-right: 0px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 main {
     max-width: 1300px;
     margin: auto;
