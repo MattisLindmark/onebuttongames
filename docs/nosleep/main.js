@@ -205,7 +205,7 @@ if (CHEATMODE) {
   // If ball exit the screen
   if (ball.pos.x < 0 || ball.pos.x > G.WIDTH - 0 || ball.pos.y < 0 || ball.pos.y > G.HEIGHT - 0) {
     levelData.level = 0;
-    end();
+    end("You fell asleep");
   }
 
   

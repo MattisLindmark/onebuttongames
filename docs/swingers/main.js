@@ -67,6 +67,7 @@ function update() {
       let point = {
         pos: vec(G.WIDTH / 2, i * rope.pointSpacing),
         prevPos: vec(G.WIDTH / 2, i * rope.pointSpacing),
+//        pmass: rope.pointMass-i*0.1,
       };
       rope.points.push(point);
     }
@@ -97,16 +98,16 @@ function update() {
   }
 
   
-  applayGravity();
   // constrain the first point to the mouse position
   //  rope.points[0].pos = vec(input.pos.x, input.pos.y);
   // Constraint the first point to the top center of the screen
+  applayGravity();
   
   applyConstraints();
   updateRope();
   drawRope();
-  let x = sin(ticks * 0.1) * 20;
-  let y = cos(ticks * 0.1) * 20;
+  let x = sin(ticks * .12) * 10;
+  let y = cos(ticks * .12) * 5;
   rope.points[0].pos = vec(x+50, y+50);
 
   text("pl: " + rope.points.length, 3, 3);
@@ -122,11 +123,12 @@ function applayGravity() {
     point.pos.x += force.x;
     point.pos.y += force.y;
   }
-  
+
+
   // Apply wind force to the last point
   //rope.points[rope.points.length - 1].pos.x += rope.wind;
 
-//   Apply tension force to the last point
+/*   Apply tension force to the last point
   let tension = vec(rope.points[rope.points.length - 1].pos.x - rope.points[rope.points.length - 2].pos.x, rope.points[rope.points.length - 1].pos.y - rope.points[rope.points.length - 2].pos.y);
   let length = Math.sqrt(tension.x * tension.x + tension.y * tension.y);
   tension.x = tension.x / length;
@@ -140,7 +142,7 @@ function applayGravity() {
 // put a weight on the last point
 //  rope.points[rope.points.length - 1].pos.y += 0.1;
 
-
+/*
   // Apply friction force to the last point
   let friction = vec(rope.points[rope.points.length - 1].pos.x - rope.points[rope.points.length - 2].pos.x, rope.points[rope.points.length - 1].pos.y - rope.points[rope.points.length - 2].pos.y);
   length = Math.sqrt(friction.x * friction.x + friction.y * friction.y);
@@ -152,7 +154,7 @@ function applayGravity() {
   rope.points[rope.points.length - 1].pos.y -= friction.y;
 
 
-  /* Apply drag force to the last point
+  // Apply drag force to the last point
   let drag = vec(rope.points[rope.points.length - 1].pos.x - rope.points[rope.points.length - 2].pos.x, rope.points[rope.points.length - 1].pos.y - rope.points[rope.points.length - 2].pos.y);
   length = Math.sqrt(drag.x * drag.x + drag.y * drag.y);
   drag.x = drag.x / length;
@@ -160,8 +162,8 @@ function applayGravity() {
   drag.x *= rope.drag;
   drag.y *= rope.drag;
   rope.points[rope.points.length - 1].pos.x -= drag.x;
+  rope.points[rope.points.length - 1].pos.y -= drag.y;
 */
-
 
 
 }
@@ -218,6 +220,11 @@ function drawRope() {
   for (let i = 0; i < rope.points.length - 1; i++) {
     let point1 = rope.points[i];
     let point2 = rope.points[i + 1];
+    if (i == rope.points.length - 2) {
+      color("green");
+    } else {
+      color("black");
+    }
     line(point1.pos, point2.pos, 1);
   }
 }
