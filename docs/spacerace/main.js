@@ -54,6 +54,17 @@ byyyll
    ll
 lllll
    ll
+`,`
+ llll  
+ll  ll
+l    l
+
+l    l
+  ll
+`,`
+  ll  
+llllll
+  ll
 `
 ];
 
@@ -68,7 +79,7 @@ options = {
   isReplayEnabled: true,
   //  seed: 1,
   //  isShowingScore: false,
-    theme: "crt",
+    theme: "shapeDark",
   //  isShowingTime: true,
   //  isCapturing: true,
   //  captureCanvasScale: .2,
@@ -108,11 +119,27 @@ let starts = [];
 
 let rocks = [];
 
+let shieldcount = 0;
+
+let shieldBonus ={
+  pos: vec(50,50),
+  speed: 1,
+  isActive: false,
+  size: vec(1, 1),
+  rotation: 0
+};
+
+
 let DEBUGG = 0;
 function update() {
   if (!ticks) {
     setup();
     //setupRocks();
+  }
+
+  if (ticks % 60 == 0 && shieldBonus.isActive == false && rnd(0, 10) > 9) {
+    shieldBonus.isActive = true;
+    shieldBonus.pos.y = rnd(-20,-40);    
   }
 
 /* //=== What the heck is up with the particles? Find out here! ===
@@ -124,12 +151,64 @@ function update() {
   color("black");
   text("Dbg: " + DEBUGG, 3, 10);
 */
+
+  // if (input.isJustPressed) {
+  //   shieldcount = 100;
+  // }
   drawBgr();
   movePlayer();
   drawPlayer();
+  drawShieldBonusItem();
   moveRocks();
   drawRocks();
-  
+  if (shieldcount > 0) {
+    shieldcount--;
+    drawShield();
+  }
+  TestArc();
+}
+
+function drawShieldBonusItem() {
+  if (shieldBonus.isActive) {
+    shieldBonus.pos.y += shieldBonus.speed;
+    if (shieldBonus.pos.y > G.HEIGHT) {
+      shieldBonus.pos.y = rnd(-20,-40);
+      shieldBonus.pos.x = rnd(2, G.WIDTH-2);
+      shieldBonus.isActive = false;
+    }
+    color(LoopColor(4));
+    if (char("k", shieldBonus.pos).isColliding.char.a) {
+      shieldBonus.isActive = false;
+      shieldcount += 120;
+      play("coin");
+      color("yellow");
+      particle(player.pos, 5, 3, 33, 0.5);
+      color("black");
+      particle(player.pos, 5, 2, 33, 0.2);
+    }
+
+  }
+
+}
+
+function drawShield() {
+  let clr = "light_cyan";
+  if (shieldcount > 25) {
+    clr = LoopColor(3);
+  }
+ // ((shieldcount > 50? ct = 5 : ct = 60;
+  color(clr);//LoopColor(ct));
+  char("j", player.pos,{scale: {x: 1.5, y: 1.5}});
+  color("black");
+  if (shieldcount % 10 == 0) {
+    particle(player.pos, 1, 1);
+  }
+}
+
+const colors = ["red", "blue", "green", "yellow", "purple", "cyan", "light_red", "light_blue", "light_green", "light_yellow", "light_purple", "light_cyan"];
+function LoopColor(speed = 2) {
+  let index = parseInt(ticks / speed) % colors.length;
+  return colors[index];
 }
 
 function drawBgr() {
@@ -180,6 +259,20 @@ function setup() {
   addBoosters(3);
 }
 
+let arcY = 0;
+function TestArc() {
+  text("ay  " + arcY, 3, 10);
+  arcY += 0.1;
+  // Draw an arc that takse up 1/4 of the right side of the screen.
+  color("light_red");
+    arc(G.WIDTH+15-arcY, G.HEIGHT/14+arcY, G.WIDTH/5, 15);
+
+    // same but on the left side
+    arc(-25+arcY, G.HEIGHT/2+arcY, G.WIDTH/4, 25);
+  
+
+}
+
 function ResetStuff() {
   levelData = {
     level: 1,
@@ -189,6 +282,8 @@ function ResetStuff() {
     boosters: 3,
     globalspeed: 1,  
   };
+  shieldcount = 0;
+  shieldBonus.isActive = false;
 }
 
 // function pseudoRandom(seed) {
@@ -273,7 +368,7 @@ function addBoosters(ammount = 3) {
   for (let i = 0; i < ammount; i++) {
     let rock = {
       pos: vec(rnd(0, G.WIDTH), rnd(G.HEIGHT*-1, 0)),
-      speed: rnd(0.6, 1.2),
+      speed: rnd(0.6, 1),
       isActive: true,
       size: vec(2, 1),
       rotation: 0,
@@ -399,6 +494,7 @@ function checkCollisions(coldata)
   if (coldata.col.isColliding.char.a) {
     if (coldata.rock.sprite == "f") {
       play("coin");
+      shieldcount += 40;
       player.pos.y -= 10; //5, 2,33,DEBUGG
       color("yellow");
       particle(player.pos, 5, 3, 33, 0.5);
@@ -406,8 +502,13 @@ function checkCollisions(coldata)
       particle(player.pos, 5, 2, 33, 0.2);
 
     } else {
-      play("hit");
-      player.pos.y += 10;
+      if (shieldcount < 1) {
+        play("hit");
+        player.pos.y += 10;
+        //play("click")
+      } else {
+        play("click");
+      }
       particle(player.pos, 10, 2);
     }
     coldata.rock.pos.y = rnd(G.HEIGHT*-1, 0);
