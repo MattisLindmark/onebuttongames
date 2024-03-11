@@ -1,0 +1,27 @@
+
+2024-03-11
+
+  if (dropBlock) {
+    dropSpeed += 0.1;
+    currentBlock.pos.y += dropSpeed;
+    //    currentBlock.pos.y = currentBlock.pos.y + easeOutCubic(currentBlock.pos.y+memoyr.pos.y, 50);
+
+    let blockLevelY = stack.length > 0 ? stack[stack.length - 1].pos.y : memoyr.pos.y;
+
+    if (currentBlock.pos.y > blockLevelY - currentBlock.height) {
+      if (stack.length > 0){
+      CutBlockBasedOnBlock(stack[stack.length - 1], currentBlock.pos.x, currentBlock.length);
+      } else {
+      stack.push({ pos: vec(currentBlock.pos.x, blockLevelY - currentBlock.height), length: currentBlock.length, height: currentBlock.height });
+      }
+      dropBlock = false;
+      newCurrentBlock();
+    }
+
+
+    // if (currentBlock.pos.y > memoyr.pos.y - currentBlock.height) {
+    //   stack.push({ pos: vec(currentBlock.pos.x, memoyr.pos.y - currentBlock.height), length: currentBlock.length, height: currentBlock.height });
+    //   dropBlock = false;
+    //   newCurrentBlock();
+    // }
+  }
