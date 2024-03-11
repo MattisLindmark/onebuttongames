@@ -69,8 +69,8 @@ llllll
 ];
 
 const G = {
-  WIDTH: 115,
-  HEIGHT: 190,
+  WIDTH: 140,
+  HEIGHT: 160,
 };
 
 options = {
