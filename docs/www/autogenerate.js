@@ -24,12 +24,12 @@ fetch(path)
     var html = "";
     titles.forEach(title => {
       html += `
-        <div class="item">
+        <div class="item" onClick="">
         <div class="titlebar">${title.title}</div>
         <div class="boxart" style="--boxart-url: url('../${title.folderName}/boxart.jpg')"></div>
         <div class="card" style="--card-color: ${getRandomColorDeSat()}")>
         <img src="../${title.folderName}/screenshot.gif" alt="${title.title} Screenshot">
-        <div class="play-button"><a href="${gamePath}${title.folderName}" alt="Play game"></a></div>
+        <div class="play-button" onClick=""><a href="${gamePath}${title.folderName}" alt="Play game"></a></div>
         <h2>${title.title}</h2>
         <p>${title.description}</p>        
         </div>
@@ -80,7 +80,7 @@ function randomCompany() {
     .then(data => {
       let companies = data.companies;
       let randomCompany = companies[Math.floor(Math.random() * companies.length)];
-      str = `<p>© 1985 ${randomCompany.name} - ${randomCompany.catchphrase}</p>`;
+      str = `<p>© 1986 ${randomCompany.name} - ${randomCompany.catchphrase}</p>`;
       document.getElementById("footer").innerHTML= str;
     })
     .catch(err => console.error(err));
