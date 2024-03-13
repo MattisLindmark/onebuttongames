@@ -1,4 +1,4 @@
-//title = "  Stack\n The\n  Heap";
+title = "   Stack\n     The\n    Heap";
 
 description = `
 `;
@@ -36,14 +36,15 @@ l l
 const G = {
   WIDTH: 130,
   HEIGHT: 150,
-  SPEED: 2
+  SPEED: 2,
+  SEED: 1
 };
 
 options = {
   viewSize: { x: G.WIDTH, y: G.HEIGHT },
   //isPlayingBgm: true,
-  isReplayEnabled: true,
-  //  seed: 1,
+  //isReplayEnabled: true,
+   // seed: G.SEED,
   //  isShowingScore: false,
     theme: "crt",
   //  isShowingTime: true,
@@ -77,7 +78,8 @@ let block_template = {
   length: fullLength,
   height: 8,
   speed: 0,
-  isEnter: true
+  isEnter: true,
+  isNew: true
 };
 
 let separatedBlock = null;
@@ -104,22 +106,27 @@ const colors = ["red", "blue", "green", "yellow", "purple", "cyan", "black", "li
 
 function update() {
   if (!ticks) {
-    console.log("FullLenth: " + fullLength);
-    console.log("MemoryStartPos: " + memoryStartPos);
+    sss.setSeed(G.SEED);
+//    console.log("FullLenth: " + fullLength);
+//    console.log("MemoryStartPos: " + memoryStartPos);
     setup();
     //testCalculateScore();
   }
 
-  text("spd: " + levelData.speed, 3, 10);
+  
+
+
+//  text("spd: " + levelData.speed, 3, 10);
 //  text("StackSize: " + stack.length, 3, 20);
 
   // text("Ticks: " + ticks, 3, 10);
 
   // text topp middle of screen
+  color("green");
   text("" + currentBlock.length + "KB", G.WIDTH / 2 - 10, 3);
   text("" + stack.length+"stk", G.WIDTH / 2 - 10, 10);
   color("black");
-  //drawMatrix();
+ // drawMatrix();
   handleMovement();
   CheckStackHeight();
   drawStack();
@@ -152,12 +159,13 @@ function setup() {
   currentBlock.speed = levelData.speed;
   currentBlock.speed *= -1;
   */
- // stack.push({pos: vec(10, 10), length: 50, height: 8});
- 
+
+/* ======================================================= matrix rain =======================================================
+  matrixRain = [];
  times(10, () => {
    matrixRain.push({ pos: vec(rnd(0, G.WIDTH), rnd(0, G.HEIGHT)), speed: rnd(0.5, 1.5) });
   });
-  
+*/
 }
 
 function drawMatrix() {
@@ -227,7 +235,13 @@ function CheckStackHeight() {
 
 let dropSpeed = 0.1;
 function handleMovement() {
-  if (input.isJustPressed && currentBlock.pos.x < G.WIDTH && !dropBlock) {
+
+  if (currentBlock.pos.x < G.WIDTH && currentBlock.isNew) {
+    play("laser", { volume: 1 });
+    currentBlock.isNew = false;
+  }
+
+  if (input.isJustPressed && !currentBlock.isNew && !dropBlock){// && currentBlock.pos.x < G.WIDTH && !dropBlock) {
     dropSpeed = 0.1;
     dropBlock = true;
     // snap current block in x to closest full value
@@ -238,14 +252,15 @@ function handleMovement() {
 
   // move the current block from side to side
   if (!dropBlock) {
-    if (currentBlock.pos.x == G.WIDTH-levelData.speed && currentBlock.isEnter) {
-      play("laser");
-    }
 
-    if (currentBlock.pos.x > G.WIDTH - currentBlock.length - 1 && !currentBlock.isEnter) {
-      play("coin");
+    if (currentBlock.pos.x + currentBlock.length > G.WIDTH-1 && !currentBlock.isEnter) { 
+     // play("laser" ,{ note:"c5", volume: 0.5 });
+      play("hit", { volume: 0.5, seed: 10});
       currentBlock.speed *= -1;
       currentBlock.length -= levelData.degradationRate;
+      if (currentBlock.length < 1) {
+        end();
+      }
     }
     if (currentBlock.pos.x < 1) {
       currentBlock.isEnter = false;
@@ -278,7 +293,11 @@ function handleMovement() {
 
 // ======================================================= sucessfully placed block on stack =======================================================
       if (!hasEnded){
-      play("laser", { volume: 0.5 });
+//      play("laser");//, { volume: 0.5 });      
+      let n = calcNote(stack.length);
+      //console.log("Note: " + n);
+      play("synth", { note: n, volume: 0.5, seed: 1});
+
       if (topBlock.length == currentBlock.length)
       {
         score += 5;
@@ -296,6 +315,42 @@ function handleMovement() {
   }
 }
 
+//const notelist = ["c", "d", "e", "f", "g", "a", "b"];
+const notelist = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"];
+/*
+const melody = [
+ // "c4", "d4", "e4", "f4", "g4", "a4", "b4", // Ascending notes in 4th octave
+ // "c5", "b4", "a4", "g4", "f4", "e4", "d4", "c4", // Ascending to 5th octave and descending back to 4th
+ "c4", "c4", "g4", "g4", "a4", "a4", "g4", // Twinkle, twinkle, little star,
+ "f4", "f4", "e4", "e4", "d4", "d4", "c4", // How I wonder what you are.
+ "g4", "g4", "f4", "f4", "e4", "e4", "d4", // Up above the world so high,
+ "g4", "g4", "f4", "f4", "e4", "e4", "d4", // Like a diamond in the sky.
+ "c4", "c4", "g4", "g4", "a4", "a4", "g4", // Twinkle, twinkle, little star,
+ "f4", "f4", "e4", "e4", "d4", "d4", "c4"  // How I wonder what you are.
+];
+const melody = [
+  "e5", "d#5", "e5", "d#5", "e5", "b4", "d5", "c5", "a4", // Main theme
+  "c4", "e4", "a4", "b4", // Transition
+  "e4", "g#4", "b4", "c5", // Transition
+  "e4", "e5", "d#5", "e5", "d#5", "e5", "b4", "d5", "c5", "a4" // Main theme
+];
+const melody = [
+  "f4", "f4", "f4", "a#4", "f5", // Main theme
+  "d#5", "d5", "c5", "a#4", // Transition
+  "f5", "d#5", "d5", "c5", "a#4", // Transition
+  "f5", "d#5", "d5", "d#5", "c5", // Main theme
+];
+*/
+function calcNote(number = 0) {
+ // return melody[number % melody.length];
+
+  let note = notelist[number % notelist.length];
+  let octave = Math.floor(number / notelist.length);
+  octave += 2;
+  return "" + note + octave;
+}
+
+
 function calculateScore(KB, stack){
   let returScore = 0;
   let step = 0.15625;//10 / range; // 0,15625
@@ -308,7 +363,7 @@ function calculateScore(KB, stack){
   } else{
     returScore += stack.length - 2;
   }
-  console.log("KB: " + KB + " Score: " + returScore);
+//  console.log("KB: " + KB + " Score: " + returScore);
   return returScore+1;
 }
 
@@ -320,7 +375,9 @@ function testCalculateScore() {
 }
 
 function checkDifficulty() {
-  if (stack.length % 5 == 0) {
+  
+  if (stack.length % 8 == 0) {
+    play("random", { volume: 0.3 });
     levelData.speed += 0.5;
   }
 }
@@ -353,7 +410,7 @@ function CutBlockBasedOnBlock(topBlock, currentBlock) {
   }
 
   if (currentBlock.length < 1) {
-    console.log("outside of the block");
+//    console.log("outside of the block");
     separatedBlock = null;
   } 
 
@@ -377,6 +434,9 @@ function drawMemoryBase() {
   color("green");
   // put this text inside the rect
   text("64 KB RAM", memory.pos.x + 10, memory.pos.y + 3);
+  //color("light_black");
+  text("vvvvv vvv", memory.pos.x + 8, memory.pos.y + 10);
+  color("black");
 
 }
 
