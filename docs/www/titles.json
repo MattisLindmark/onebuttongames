@@ -49,6 +49,12 @@
         "title": "No Sleep",
         "folderName": "nosleep",
         "description": "The struggle is real! The struggle to to do whatever it takes to keep your focus and stay awake! For some reason."
+      },
+      {
+        "title": "Stack The Heap",
+        "folderName": "stacktheheap",
+        "description": "Hack the past, command the future, controll the RAM and STACK the HEAP!"
       }
+
     ]
   }

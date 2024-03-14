@@ -1,8 +1,18 @@
+title = "";
+
+description = `Hack the past,\ncommand the future\n \n \n     Stack\n        The\n          Heap`;
+/*
+
+title = "  HOW ABOUT A NICE GAME OF";
+
+description = `ROCK\n PAPER\n  SCISSORS?
+
+
 title = "   Stack\n     The\n    Heap";
 
-description = `
+description = `Hack the Past, Command the Future!
 `;
-
+*/
 characters = [
   `
 llllll
@@ -49,7 +59,7 @@ options = {
     theme: "crt",
   //  isShowingTime: true,
   //  isCapturing: true,
-  //  captureCanvasScale: .2,
+  //  captureCanvasScale: .3,
   //  isCapturingGameCanvasOnly: true
 };
 

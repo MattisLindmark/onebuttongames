@@ -80,7 +80,7 @@ function randomCompany() {
     .then(data => {
       let companies = data.companies;
       let randomCompany = companies[Math.floor(Math.random() * companies.length)];
-      str = `<p>© 1986 ${randomCompany.name} - ${randomCompany.catchphrase}</p>`;
+      str = `<p>© 1985 ${randomCompany.name} - ${randomCompany.catchphrase}</p>`;
       document.getElementById("footer").innerHTML= str;
     })
     .catch(err => console.error(err));
