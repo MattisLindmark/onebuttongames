@@ -84,6 +84,7 @@ options = {
   //  isCapturing: true,
   //  captureCanvasScale: .2,
   //  isCapturingGameCanvasOnly: true
+  //isDrawingParticleFront: true
 };
 
 /*
@@ -155,6 +156,10 @@ function update() {
   // if (input.isJustPressed) {
   //   shieldcount = 100;
   // }
+
+  
+  
+  
   drawBgr();
   movePlayer();
   drawPlayer();
@@ -165,7 +170,16 @@ function update() {
     shieldcount--;
     drawShield();
   }
-  TestArc();
+  testArcB();
+  text("PLy: " + player.pos.y, 3, 10);
+  color ("light_green");
+  rect (G.WIDTH-10, 40+player.pos.y*-1, 10, 10); // G.HEIGHT-(G.HEIGHT/4) = 120 ca just nu
+  rect(10, 40+player.pos.y*-1, 10, 10);
+  // line between the two rects
+  color("green");
+  line(G.WIDTH-10, 45+player.pos.y*-1, 10, 45+player.pos.y*-1, 1);
+  color("black");
+  
 }
 
 function drawShieldBonusItem() {
@@ -259,18 +273,57 @@ function setup() {
   addBoosters(3);
 }
 
+let rot = 0;
+let rot2 = 45;
+
+let bigBoulder = {
+  pos: vec(G.WIDTH / 2, G.HEIGHT / 2),
+  size: 10,
+  rotation: 0
+};
+
+let angle = 0;
+function testArcB(r = 1) {
+  color("light_red");
+
+  //  bigBoulder.pos.x = G.WIDTH/2 + 10 * Math.cos(angle);
+  //  bigBoulder.pos.y = G.HEIGHT/2 + 20 * Math.sin(angle);
+  let offset = vec(5, 3);
+  bigBoulder.pos.x -= 0.1;
+  bigBoulder.pos.y += 0.2;
+  angle += 0.01;
+
+  let col = [];
+  let modPos = vec(bigBoulder.pos.x + offset.x, bigBoulder.pos.y + offset.y);
+  col.push(arc(modPos, bigBoulder.size, bigBoulder.size * 2));
+  modPos = vec(bigBoulder.pos.x - offset.x, bigBoulder.pos.y - offset.y);
+  col.push(arc(modPos, bigBoulder.size, bigBoulder.size * 2));
+
+  /*
+  
+    col.push(arc(G.WIDTH-arcY, G.HEIGHT/14+arcY, 10, 30));
+    col.push(arc(G.WIDTH-5-arcY, G.HEIGHT/14+arcY-5, 10, 30));
+    //  arc(-35+(arcY/2), G.HEIGHT/2+arcY, 10, 60);
+    */
+    if (col[0].isColliding.char.a || col[1].isColliding.char.a) {
+      play("hit");
+      particle(player.pos, 1, 1);
+    }
+  arcY += 0.1;
+}
+
+
 let arcY = 0;
-function TestArc() {
+function testArc() {
   text("ay  " + arcY, 3, 10);
   arcY += 0.1;
   // Draw an arc that takse up 1/4 of the right side of the screen.
   color("light_red");
     arc(G.WIDTH+15-arcY, G.HEIGHT/14+arcY, G.WIDTH/5, 15);
+    
 
     // same but on the left side
     arc(-25+arcY, G.HEIGHT/2+arcY, G.WIDTH/4, 25);
-  
-
 }
 
 function ResetStuff() {
@@ -447,6 +500,7 @@ function drawPlayer()
     }
     char(spr, flame, {mirror: {x: player.direction, y: 1}});
   }
+
 }
 
 function moveRocks()
@@ -492,7 +546,7 @@ function drawRocks()
 function checkCollisions(coldata)
 {
   if (coldata.col.isColliding.char.a) {
-    if (coldata.rock.sprite == "f") {
+    if (coldata.rock.sprite == "f") { // ==== BOOSTER ====
       play("coin");
       shieldcount += 40;
       player.pos.y -= 10; //5, 2,33,DEBUGG
@@ -500,14 +554,17 @@ function checkCollisions(coldata)
       particle(player.pos, 5, 3, 33, 0.5);
       color("black");
       particle(player.pos, 5, 2, 33, 0.2);
+      score ++;
 
     } else {
-      if (shieldcount < 1) {
+      if (shieldcount < 1) {// === Rock - NO SHIELD ===
         play("hit");
         player.pos.y += 10;
+        score --;
         //play("click")
-      } else {
+      } else {             // === Rock - SHIELD ===
         play("click");
+        score ++;
       }
       particle(player.pos, 10, 2);
     }
