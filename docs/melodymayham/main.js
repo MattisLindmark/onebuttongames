@@ -21,7 +21,8 @@ llllll
 const G = {
   WIDTH: 200,
   HEIGHT: 200,
-  SEED: 1
+  SEED: 1,
+  SPEED: .8   
 };
 
 options = {
@@ -71,6 +72,7 @@ const statecolor = ["black", "light_green", "red", "green"];
 let G_bargLength = 10;
 let sheet = [];
 let playHeadX = 50;
+let playZone = vec(playHeadX, playHeadX+6);
 
 const melody = [
   "d4", "d4", "d5", "", "a4", "", "", "g#4", "", "g4", "", "f4", "", "d4", "f4", "g4",
@@ -84,18 +86,50 @@ const melody = [
   "a#3", "a#3", "d5", "", "a4", "", "", "g#4", "", "g4", "", "f4", "", "d4", "f4", "g4"
 ];
 
+const melodyb = [
+  "e5", "d#5", "e5", "d#5", "e5", "b4", "d5", "c5", "a4", "", // Main theme
+  "c4", "e4", "a4", "b4", "", // Transition
+  "e4","g#4", "b4", "c5", "", // Transition
+  "e4", "e5", "d#5", "e5", "d#5", "e5", "b4", "d5", "c5", "a4", "", // Main theme
+  // continuation
+  "c4", "e4", "a4", "b4", "", // Transition
+  "e4", "c5", "b4", "a4", "", // Transition
+  "b4", "c5", "d5", "e5", "", // Transition
+  "g4", "f5", "e5", "d5", "", // Transition
+  "f4", "e5", "d5", "c5", "", // Transition
+  "e4", "d5", "c5", "b4", "", // Transition
+  "e4", "e5", "d#5", "e5", "d#5", "e5", "b4", "d5", "c5", "a4", "", // Main theme
+  // final part
+  "c4", "e4", "a4", "b4", "", // Transition
+  "e4", "c5", "b4", "a4", "", // Transition
+  "b4", "c5", "d5", "e5", "", // Transition
+  "g4", "f5", "e5", "d5", "", // Transition
+  "f4", "e5", "d5", "c5", "", // Transition
+  "e4", "d5", "c5", "b4", "", // Transition
+  "e4", "e5", "d#5", "e5", "d#5", "e5", "b4", "d5", "c5", "a4", "" // Main theme
+];
 let duplex = false;
 let dNr = 0;
 let songPosition = 0;
 let s = 1;
+let PlayBar = 0;
 function update() {
   if (!ticks) {
     sss.setSeed(2);
     createSheet();
   }
+
+
+  if (input.isJustPressed) {
+    PlayBar = 100;
+  }
+  
+  PlayBar -= 5;
+  if (PlayBar < 0) PlayBar = 2;
   color("cyan");
   rect(playHeadX, 50, .5, 100,);
-  rect(60, 50, .5, 100,);
+  rect(playHeadX+5, 50, .5, 100,);
+  bar(playHeadX+3, G.HEIGHT/2,PlayBar,2,11);
 
   moveNoteBar();
   drawSheet();
@@ -132,11 +166,24 @@ function update() {
   }
   */
 
-  
+  if (input.isJustPressed) {
+    // loop through sheet, and check if the note is playable
+    
+    for (let i = 0; i < sheet.length; i++) {
+      if (sheet[i].playState == 1) {
+        sheet[i].playState = 3;
+        sheet[i].hasPlayed = true;
+        PlayTheSound(sheet[i].note);
+        score++;
+      }
+    }
+  }
+
+/*
   // ====================================================== determing notes based on x.position.
     for (let i = 0; i < sheet.length; i++) {
       let n = sheet[i].note;
-      if (n != "" && sheet[i].pos.x < 61 && sheet[i].pos.x > 49 && !sheet[i].hasPlayed) {
+      if (n != "" && sheet[i].pos.x < playHeadX+6 && sheet[i].pos.x > playHeadX-1 && !sheet[i].hasPlayed) {
         if (!sheet[i].hasPlayed) {
           if (input.isJustPressed || input.isJustReleased)
           {
@@ -198,6 +245,16 @@ function update() {
 
 }
 
+function PlayTheSound(n) {
+  if (duplex) {
+    duplex = false;
+    play("synth", { note: n, volume: 0.5, seed: s });
+  } else {
+    duplex = true;
+    play("synth", { note: n, volume: 0.5, seed: s });
+  }
+}
+
 function calcNote(pos) {
   return melody[pos % melody.length];
 }
@@ -208,7 +265,7 @@ function createSheet(m = melody) {
     isPause: false,
     note: "",
     hasPlayed: false,
-    playState: 0 // 0 = not played, 1 = playable, 2 = missed
+    playState: 0 // 0 = not played, 1 = playable, 2 = missed, 3 = not missed
   };
   sheet = [];
   // based on the melody, create the sheet where each note represents a y value, like a piano. b4 = 10 and c3 = G.HEIGHT - 10
@@ -242,27 +299,45 @@ function getY(note = "") {
   return (index + 1) * 5;
 
 }
+
+let tmp;
 function moveNoteBar() {
   // move note bar to the right
   // if it is at the end, reset to the beginning
-
+  console.log("tmp: " + tmp);
+  tmp = 0;
   // loop through sheet, and move each note bar to the left
   for (let i = 0; i < sheet.length; i++) {
-    sheet[i].pos.x -= 0.5;
-    if (sheet[i].pos.x < playHeadX - G_bargLength && !sheet[i].hasPlayed && sheet[i].playState != 3) { // hela längden passerat playhead. Dom är 5 just nu.
-      sheet[i].hasPlayed = true;
-      //  particle(sheet[i].pos, 10);
-    }
-    if (sheet[i].hasPlayed && sheet[i].playState != 3) {
-      sheet[i].playState = 2;
-    }
+    sheet[i].pos.x -= G.SPEED;
 
+    // if (sheet[i].pos.x < playHeadX - G_bargLength && !sheet[i].hasPlayed && sheet[i].playState != 3) { // hela längden passerat playhead. Dom är 5 just nu.
+    //   sheet[i].hasPlayed = true;
+    //   //  particle(sheet[i].pos, 10);
+    // }
+
+
+    if (sheet[i].pos.x + G_bargLength < playZone.x && (sheet[i].playState == 1 || sheet[i].playState == 0)) {
+      sheet[i].playState = 2;
+      sheet[i].hasPlayed = true;
+    }
+    
+    // if (sheet[i].hasPlayed && sheet[i].playState != 3 && sheet[i].playState != 1) {
+    //   sheet[i].playState = 2;
+    //   console.log("does this ever fire?");
+    // }
+
+    if (sheet[i].pos.x+G_bargLength > playZone.x && sheet[i].pos.x < playZone.y) { // 0 = not played, 1 = playable, 2 = missed, 3 = not missed
+      sheet[i].playState = 1;
+    }
   }
 }
 
 function drawSheet() {
   // draw the sheet
   for (let i = 0; i < sheet.length; i++) {
+    if (sheet[i].pos.x < 0 - G_bargLength || sheet[i].pos.x > G.WIDTH) {
+      continue;
+    }
     let n = sheet[i].note;
     if (n != "") {
       //console.log("ps"+sheet[i].pos.x)
@@ -270,10 +345,10 @@ function drawSheet() {
       color(c);
       let col = rect(sheet[i].pos.x, sheet[i].pos.y, G_bargLength, 5);
       color("black");
-      //console.log("Drawing note: " + n);
-      if (col.isColliding.rect.cyan && sheet[i].playState == 0) {
-        sheet[i].playState = 1;
-      }
+      
+      //if (col.isColliding.rect.cyan && sheet[i].playState == 0) {
+      //  sheet[i].playState = 1;
+     // }
     }
   }
 }
