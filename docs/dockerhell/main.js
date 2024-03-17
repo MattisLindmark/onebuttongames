@@ -39,10 +39,18 @@ const G = {
   STAR_SPRITE: "b",
   LOADINGSPEED: 1
 };
+// an array that feels shaky
+const shakeArray = [-0.1, 0.2, -0.3, 0.4, -0.5, 0.6, -0.7, 0.8, -0.9, 1.0, -0.9, 0.8, -0.7, 0.6, -0.5, 0.4, -0.3, 0.2, -0.1, 0.0, 0.1, -0.2, 0.3, -0.4, 0.5, -0.6, 0.7, -0.8, 0.9, -1.0];
+let shakeindex = 0;
 
 options = {
   viewSize: { x: G.WIDTH, y: G.HEIGHT },
-  theme: "shapeDark"
+  theme: "dark",
+  isShowingScore: false,
+//   isShowingTime: true,
+//   isCapturing: true,
+   //captureCanvasScale: .2,
+//   isCapturingGameCanvasOnly: true
 };
 
 /**
@@ -61,41 +69,55 @@ let leveldata = { // OBS lazy setting of data again in setup etc osv.
   safeZone: 25
 };
 let barColor = "blue";
+
+
+// ================== GAME LOOP ==================
 function update() {
   if (!ticks) {
     setup();
   }
 
-  placeBarAnim();
   
-
   drawBgr();
-  color("black");
-  char("a", 50, 42);
-  color (barColor);
-  box(G.WIDTH/2, G.HEIGHT/2, calculateBarValue(), 4);
-  color("black");
 
+  color("light_cyan");
+  if (input.isPressed){
+    color("black");
+    if (ticks%4==0)shakeindex ++;
+  } 
+
+  char("a", G.WIDTH/2+(shakeArray[shakeindex%shakeArray.length]), 40+(shakeArray[(shakeindex+20)%shakeArray.length]));
+  color(barColor);
+  box(G.WIDTH / 2, G.HEIGHT / 2, calculateBarValue(), 4);
+  color("black");
+  
   if (leveldata.isLoadingPhase) {
     loadingPhase();
   } else {
     updatePhase();
   }
- 
+  placeBarAnim();
+  
   // if (input.isJustReleased && loadingTime < 100) {
   //   loadingTime = 0;
   // }
 
+  // text("safex: " + safex, 5, 5);
+  // text("safezone: " + leveldata.safeZone, 5, 10);
+  // text("LoadTime: " + loadingTime, 5, 15);
+
   checkEndContitions();
 }
+
+// ================== FUNCTIONS ==================
 
 let animCounter = 0;
 let safex = 0;
 //let TMPbool = true;
 function placeBarAnim() {
   //let TMP = true;
-  
-  animCounter += ((animCounter*0.3)+0.01);
+
+  animCounter += ((animCounter * 0.3) + 0.01);
   if (animCounter > 1) {
     animCounter = 1;
   }
@@ -111,39 +133,40 @@ function placeBarAnim() {
 
 
   if (leveldata.isLoadingPhase) {
-    safex = lerp(0, leveldata.safeZone/2,animCounter);
+    safex = lerp(0, leveldata.safeZone / 2, animCounter);
   } else {
-    safex = lerp(leveldata.safeZone/2, 0,animCounter);
+    safex = lerp(leveldata.safeZone / 2, 0, animCounter);
   }
 
   //text (""+safex, 5, 5);
 
   // draw the loading zones
   color("green");
-  box((G.WIDTH+1)-safex, G.HEIGHT/2, 1, 10);
-  box(safex-1, G.HEIGHT/2, 1, 10);
+  box((G.WIDTH + 1) - safex, G.HEIGHT / 2, 1, 10);
+  box(safex - 1, G.HEIGHT / 2, 1, 10);
   color("red");
-  box(G.WIDTH, G.HEIGHT/2, 1, safex+10); // 30 is a good height
-  box(0, G.HEIGHT/2, 1, safex+10);
+  box(G.WIDTH, G.HEIGHT / 2, 1, safex + 10); // 30 is a good height
+  box(1, G.HEIGHT / 2, 1, safex + 10);
 
   // draw the update zone
-  color("green");
-  box(G.WIDTH / 2 - (leveldata.safeZone/2-safex), G.HEIGHT / 2, 1, 10);
-  box(G.WIDTH / 2 + (leveldata.safeZone/2-safex), G.HEIGHT / 2, 1, 10);
-  
-  //  rect(G.WIDTH/2-leveldata.safeZone/2, G.HEIGHT/2-4, leveldata.safeZone, 8);
   color("red");
-  box(G.WIDTH / 2, G.HEIGHT / 2, 1, 22-safex);
+  box(G.WIDTH / 2, G.HEIGHT / 2, 1, 10-safex);
+
+  color("green");
+  box(G.WIDTH / 2 - (leveldata.safeZone / 2 - safex), G.HEIGHT / 2, 1, 10);
+  box(G.WIDTH / 2 + (leveldata.safeZone / 2 - safex), G.HEIGHT / 2, 1, 10);
+
+  //  rect(G.WIDTH/2-leveldata.safeZone/2, G.HEIGHT/2-4, leveldata.safeZone, 8);
 
 
 
 }
 
 function easeInOutQuad(t, b, c, d) {
-  t /= d/2;
-  if (t < 1) return c/2*t*t + b;
+  t /= d / 2;
+  if (t < 1) return c / 2 * t * t + b;
   t--;
-  return -c/2 * (t*(t-2) - 1) + b;
+  return -c / 2 * (t * (t - 2) - 1) + b;
 };
 
 function lerp(start, end, time) {
@@ -161,7 +184,7 @@ function calculateBarValue() {
     loadingTime = 0;
   }
 
-  return loadingTime; 
+  return loadingTime;
 }
 
 function drawBgr() {
@@ -188,42 +211,42 @@ function loadingPhase() {
     loopColor();
   }
   if (input.isPressed && loadingTime < G.WIDTH) {
-    color("blue");
-    text("Installing docker", 1, 30); 
+    color("cyan");
+    text("Installing docker", 1, 30);
     play("laser");
   }
-/* draw the loading zones
-  color("green")
-  box(G.WIDTH-leveldata.safeZone/2, G.HEIGHT/2, 1, 10);
-  box(leveldata.safeZone/2, G.HEIGHT/2, 1, 10);
-  color("red");
-  box(G.WIDTH, G.HEIGHT/2, 1, 30);
-  box(1, G.HEIGHT/2, 1, 30);
-*/
+  /* draw the loading zones
+    color("green")
+    box(G.WIDTH-leveldata.safeZone/2, G.HEIGHT/2, 1, 10);
+    box(leveldata.safeZone/2, G.HEIGHT/2, 1, 10);
+    color("red");
+    box(G.WIDTH, G.HEIGHT/2, 1, 30);
+    box(1, G.HEIGHT/2, 1, 30);
+  */
 
 
-//  text("loading time: " + loadingTime, 5, 5);
-  
+  //  text("loading time: " + loadingTime, 5, 5);
+
   if (input.isJustReleased) {
-    if (loadingTime >= G.WIDTH-leveldata.safeZone) {
+    if (loadingTime >= G.WIDTH - leveldata.safeZone) {
       play("powerUp");
-      score ++;
+      score++;
       leveldata.isLoadingPhase = false;
       animCounter = 0;
     }
   }
 
-/*
-  if (loadingTime >= 100) {
-    score = -100;
-    color("black");
-    text("docker installed", 5, 60);
-
-    color("red");
-    box(50, 50, 100, 10);
-    loadingTime += 1;
-  }
-  */
+  /*
+    if (loadingTime >= 100) {
+      score = -100;
+      color("black");
+      text("docker installed", 5, 60);
+  
+      color("red");
+      box(50, 50, 100, 10);
+      loadingTime += 1;
+    }
+    */
 }
 
 
@@ -232,8 +255,8 @@ function updatePhase() {
     loopColor();
   }
   if (loadingTime > 1) {
-  color("red");
-  text("Update pending!", 10, 30);  
+    color("yellow");
+    text("Update pending!", 10, 30);
   }
   /* draw the zones
   color("green");
@@ -246,13 +269,13 @@ function updatePhase() {
   color("black");
 */
   if (input.isJustPressed) {
-    if (loadingTime <= leveldata.safeZone) {
+    if (loadingTime <= leveldata.safeZone+2) { // +1 to make visual and press-lag feel better
       play("powerUp");
       score++;
 
       leveldata.level++;
       if (difficultyFlag) {
-        leveldata.speed += 0.1;
+        leveldata.speed += 0.2;
       } else {
         leveldata.safeZone -= 2;
         if (leveldata.safeZone < 3) {
@@ -267,7 +290,7 @@ function updatePhase() {
 }
 
 function checkEndContitions() {
-  if (loadingTime > G.WIDTH ) {
+  if (loadingTime > G.WIDTH) {
     color("black");
     text("Install error!", 14, 70);
     reset();
@@ -302,7 +325,7 @@ function setup() {
     isLoadingPhase: true,
     safeZone: 25
   };
-  
+
 }
 
 function reset() {
