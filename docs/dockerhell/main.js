@@ -45,8 +45,8 @@ let shakeindex = 0;
 
 options = {
   viewSize: { x: G.WIDTH, y: G.HEIGHT },
-  theme: "dark",
-  isShowingScore: false,
+  theme: "dark"
+//  isShowingScore: false,
 //   isShowingTime: true,
 //   isCapturing: true,
    //captureCanvasScale: .2,
