@@ -22,7 +22,7 @@ const G = {
   WIDTH: 200,
   HEIGHT: 200,
   SEED: 1,
-  SPEED: .8   
+  SPEED: 1   
 };
 
 options = {
@@ -74,6 +74,7 @@ let sheet = [];
 let playHeadX = 50;
 let playZone = vec(playHeadX, playHeadX+6);
 
+// Megalomania
 const melody = [
   "d4", "d4", "d5", "", "a4", "", "", "g#4", "", "g4", "", "f4", "", "d4", "f4", "g4",
   "c4", "c4", "d5", "", "a4", "", "", "g#4", "", "g4", "", "f4", "", "d4", "f4", "g4",
@@ -108,6 +109,14 @@ const melodyb = [
   "e4", "d5", "c5", "b4", "", // Transition
   "e4", "e5", "d#5", "e5", "d#5", "e5", "b4", "d5", "c5", "a4", "" // Main theme
 ];
+
+const wonderwallChorus = [
+ "g4", "b4", "", "b4", "g4","", // "Because maybe"
+ "e4", "g4", "e4", "g4", "e4", "g4", "g4", "", "b4", "g4", "", // "You're gonna be the one that saves me"
+ "b4", "", "c5", "d5","", "g4", "","", // "And after all"
+  "b4", "b4", "c5", "b4", "", "b4", "a4", "g4", ""  // "You're my wonderwall"
+];
+
 let duplex = false;
 let dNr = 0;
 let songPosition = 0;
@@ -116,7 +125,7 @@ let PlayBar = 0;
 function update() {
   if (!ticks) {
     sss.setSeed(2);
-    createSheet();
+    createSheet(wonderwallChorus);
   }
 
 
@@ -172,7 +181,8 @@ function update() {
     for (let i = 0; i < sheet.length; i++) {
       if (sheet[i].playState == 1) {
         sheet[i].playState = 3;
-        sheet[i].hasPlayed = true;
+        console.log("ps--" +i+" -- "+ sheet[i].playState)
+        sheet[i].hasPlayed = true;        
         PlayTheSound(sheet[i].note);
         score++;
       }
@@ -259,7 +269,7 @@ function calcNote(pos) {
   return melody[pos % melody.length];
 }
 
-function createSheet(m = melody) {
+function createSheet(m = melodyb) {
   let noteBar = {
     pos: vec(0, 0),
     isPause: false,
@@ -300,21 +310,25 @@ function getY(note = "") {
 
 }
 
-let tmp;
+
 function moveNoteBar() {
   // move note bar to the right
   // if it is at the end, reset to the beginning
-  console.log("tmp: " + tmp);
-  tmp = 0;
+
   // loop through sheet, and move each note bar to the left
   for (let i = 0; i < sheet.length; i++) {
     sheet[i].pos.x -= G.SPEED;
+    if (sheet[i].isPause)
+      continue;
 
     // if (sheet[i].pos.x < playHeadX - G_bargLength && !sheet[i].hasPlayed && sheet[i].playState != 3) { // hela längden passerat playhead. Dom är 5 just nu.
     //   sheet[i].hasPlayed = true;
     //   //  particle(sheet[i].pos, 10);
     // }
-
+    
+    if (sheet[i].pos.x+G_bargLength > playZone.x && sheet[i].pos.x < playZone.y) { // 0 = not played, 1 = playable, 2 = missed, 3 = not missed      
+      if (sheet[i].playState == 0){ sheet[i].playState = 1};
+    }
 
     if (sheet[i].pos.x + G_bargLength < playZone.x && (sheet[i].playState == 1 || sheet[i].playState == 0)) {
       sheet[i].playState = 2;
@@ -325,10 +339,7 @@ function moveNoteBar() {
     //   sheet[i].playState = 2;
     //   console.log("does this ever fire?");
     // }
-
-    if (sheet[i].pos.x+G_bargLength > playZone.x && sheet[i].pos.x < playZone.y) { // 0 = not played, 1 = playable, 2 = missed, 3 = not missed
-      sheet[i].playState = 1;
-    }
+    
   }
 }
 

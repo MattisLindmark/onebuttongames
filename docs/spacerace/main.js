@@ -172,14 +172,23 @@ function update() {
   }
   testArcB();
   text("PLy: " + player.pos.y, 3, 10);
+  drawGoalLine();
+
+
+
+}
+let goalY = -10;
+function drawGoalLine() {
   color ("light_green");
-  rect (G.WIDTH-10, 40+player.pos.y*-1, 10, 10); // G.HEIGHT-(G.HEIGHT/4) = 120 ca just nu
-  rect(10, 40+player.pos.y*-1, 10, 10);
+  let posy = 40+player.pos.y*-1;
+  goalY = lerp(goalY, posy, 0.05);
+
+  rect (G.WIDTH-10, goalY, 10, 10); // G.HEIGHT-(G.HEIGHT/4) = 120 ca just nu
+  rect(10, goalY, 10, 10);
   // line between the two rects
   color("green");
-  line(G.WIDTH-10, 45+player.pos.y*-1, 10, 45+player.pos.y*-1, 1);
-  color("black");
-  
+  line(G.WIDTH-10, goalY+5, 10, goalY+5, 1);
+  color("black");  
 }
 
 function drawShieldBonusItem() {
@@ -308,6 +317,8 @@ function testArcB(r = 1) {
     if (col[0].isColliding.char.a || col[1].isColliding.char.a) {
       play("hit");
       particle(player.pos, 1, 1);
+      player.pos.y += 10;
+      score --;
     }
   arcY += 0.1;
 }
@@ -420,8 +431,8 @@ function addBoosters(ammount = 3) {
   // they have sprite f. and 1 rotation. 1 scale.
   for (let i = 0; i < ammount; i++) {
     let rock = {
-      pos: vec(rnd(0, G.WIDTH), rnd(G.HEIGHT*-1, 0)),
-      speed: rnd(0.6, 1),
+      pos: vec(rnd(0, G.WIDTH), ((i*100)+G.HEIGHT)*-1),// rnd(G.HEIGHT*-1, 0)),
+      speed: rnd(0.8, 1),
       isActive: true,
       size: vec(2, 1),
       rotation: 0,
@@ -459,8 +470,10 @@ function movePlayer()
     player.direction *= -1;
   }
 
-  let t = 0.25;
-  t = easeInOutCubic(t);
+  // not used??
+//  let t = 0.25;
+//  t = easeInOutCubic(t);
+  
   currentDirection = player.direction;//= lerp(currentDirection, player.direction, t);
  
  //  currentDirection = lerp(currentDirection,player.direction, 0.2);
