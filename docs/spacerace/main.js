@@ -68,8 +68,10 @@ llllll
 `
 ];
 
+
+// === Mest testade värden: w: 140 h: 160 ===
 const G = {
-  WIDTH: 140,
+  WIDTH: 90,
   HEIGHT: 160,
 };
 
@@ -107,6 +109,12 @@ let rockTemplate = {
   rotation: 0
 };
 
+let bigbosterTemplate = {
+  pos: vec(0, 0),
+  speed: .7,
+  isActive: false,
+};
+
 let levelData = {
   level: 1,
   score: 0,
@@ -119,6 +127,8 @@ let levelData = {
 let starts = [];
 
 let rocks = [];
+
+let bigBosters = [];
 
 let shieldcount = 0;
 
@@ -170,13 +180,18 @@ function update() {
     shieldcount--;
     drawShield();
   }
+
+  if (ticks % 100 == 0) {
+    checkBigBosters();
+  }
+  drawBigBosters();
+
   testArcB();
   text("PLy: " + player.pos.y, 3, 10);
   drawGoalLine();
 
-
-
 }
+
 let goalY = -10;
 function drawGoalLine() {
   color ("light_green");
@@ -188,8 +203,64 @@ function drawGoalLine() {
   // line between the two rects
   color("green");
   line(G.WIDTH-10, goalY+5, 10, goalY+5, 1);
-  color("black");  
+  color("black");
+  if (player.pos.y < goalY) {
+    play("powerUp");
+    goalY = -10;
+    levelData.level ++;
+    addRocksB(2);
+    player.pos.y = G.HEIGHT-(G.HEIGHT/4);
+    //addBoosters(3);
+  }
 }
+
+function checkBigBosters() {
+  let inactiveBoster = bigBosters.find(bigBoster => !bigBoster.isActive);
+
+  if (inactiveBoster) {
+    inactiveBoster.isActive = true;
+    inactiveBoster.pos.y = rnd(-10, 0);
+    inactiveBoster.pos.x = rnd(2, G.WIDTH-2);
+  }
+}
+
+function drawBigBosters() {
+  bigBosters.forEach((bigBoster) => {
+    if (!bigBoster.isActive) {
+      return;
+    }
+
+    bigBoster.pos.y += bigBoster.speed;
+    if (bigBoster.pos.y > G.HEIGHT+5) {
+//      bigBoster.pos.y = rnd(-50, 0);
+//      bigBoster.pos.x = rnd(2, G.WIDTH-2);
+      bigBoster.isActive = false;
+    }
+    let colA = null;
+    let colB = null;
+    color("green");
+    let left = bigBoster.pos.x - 5;
+    let right = bigBoster.pos.x + 5;
+    let down = bigBoster.pos.y + 3;
+    colA = line(bigBoster.pos.x, bigBoster.pos.y,left, down, 2);
+    colB = line(bigBoster.pos.x, bigBoster.pos.y,right, down, 2);
+
+    if (colA.isColliding.char.a || colB.isColliding.char.a) {
+      play("coin");
+      shieldcount += 40;
+      player.pos.y -= 10; //5, 2,33,DEBUGG
+      color("yellow");
+      particle(player.pos, 5, 3, 33, 0.5);
+      color("black");
+      particle(player.pos, 5, 2, 33, 0.2);
+      score ++;
+      bigBoster.isActive = false;
+    }
+  });
+
+
+}
+
 
 function drawShieldBonusItem() {
   if (shieldBonus.isActive) {
@@ -251,7 +322,7 @@ function drawStarfield() {
   });
 }
   
-
+// ==================================================================================================== SETUP ===
 function setup() {
 
   ResetStuff();
@@ -279,7 +350,21 @@ function setup() {
 
   rocks = [];
   addRocksB(2);
-  addBoosters(3);
+//  addBoosters(3);
+
+  bigBosters = [];
+  times(3, () => {
+    bigBosters.push(deepCopy(bigbosterTemplate));
+  });
+  bigBosters.forEach((bigBoster) => {
+    bigBoster.pos.x = rnd(10, G.WIDTH-10);
+    bigBoster.pos.y = rnd(50, 0);
+  });
+  
+}
+
+function deepCopy(obj) {
+  return JSON.parse(JSON.stringify(obj));
 }
 
 let rot = 0;
