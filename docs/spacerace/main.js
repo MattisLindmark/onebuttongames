@@ -139,13 +139,14 @@ let shieldBonus ={
   size: vec(1, 1),
   rotation: 0
 };
-
+let timer = 0;
 let PL_MaxReachedStep = 0; // <-- Håller reda på hur högt PL någonsin klättrat.
 let DEBUGG = 0;
 // ==================================================================================================== MAIN ===
 function update() {
   if (!ticks) {
     setup();
+    timer = 0;
     PL_MaxReachedStep = player.pos.y;
     //setupRocks();
   }
@@ -186,10 +187,17 @@ function update() {
   }
 
   if (ticks % 100 == 0) {
+    timer ++;
     checkBigBosters();
   }
   drawBigBosters();
 
+  stepBoulderDic.forEach((stepBoulder) => {
+    if (PL_MaxReachedStep < stepBoulder.step) {
+      drawBigBoulder(bigBoulders[stepBoulder.boulder]);
+    }
+  });
+/*
   if (PL_MaxReachedStep < 101) {
     drawBigBoulder(bigBoulder);
   }
@@ -197,9 +205,33 @@ function update() {
   if (PL_MaxReachedStep < 119) {
     drawBigBoulder(bigBoulder2);
   }
-
-  text("PLy: " + PL_MaxReachedStep, 3, 10);
+*/
+  text("MaxStep: " + PL_MaxReachedStep, 3, 10);
   drawGoalLine();
+  drawDeathZone();
+}
+
+function drawDeathZone() {
+  let posy = G.HEIGHT -timer;
+
+  // ---- om man vill ha den statiskt längst ned och synas bara när pl är nära.
+ // let posy = G.HEIGHT +135 - player.pos.y-5; //<-- make it go up
+  //if (player.pos.y < G.HEIGHT-20) {
+  //  return;
+ // }
+  //let posy = player.pos.y< G.HEIGHT-11? G.HEIGHT : G.HEIGHT-2;
+  //---
+  
+  color("light_red"); 
+  let col = line(G.WIDTH, posy, 0, posy, 3);
+  if (col.isColliding.char.a) {
+    //play("explosion");
+    // player.pos.y = G.HEIGHT-(G.HEIGHT/4);
+    // levelData.lives --;
+    // if (levelData.lives < 1) {
+    //   end();
+    // }
+  }
 }
 
 let goalY = -10;
@@ -208,11 +240,11 @@ function drawGoalLine() {
   let posy = 40+player.pos.y*-1;
   goalY = lerp(goalY, posy, 0.05);
 
-  rect (G.WIDTH-10, goalY, 10, 10); // G.HEIGHT-(G.HEIGHT/4) = 120 ca just nu
-  rect(10, goalY, 10, 10);
+  rect (G.WIDTH-10, goalY, 10, 5); // G.HEIGHT-(G.HEIGHT/4) = 120 ca just nu
+  rect(10, goalY, 10, 5);
   // line between the two rects
   color("green");
-  line(G.WIDTH-10, goalY+5, 10, goalY+5, 1);
+  line(G.WIDTH-10, goalY+5, 20, goalY+5, 1);
   color("black");
   if (player.pos.y < goalY) {
     play("powerUp");
@@ -230,7 +262,7 @@ function checkBigBosters() {
   if (inactiveBoster) {
     inactiveBoster.isActive = true;
     inactiveBoster.pos.y = rnd(-10, 0);
-    inactiveBoster.pos.x = rnd(2, G.WIDTH-2);
+    inactiveBoster.pos.x = rnd(2, G.WIDTH-15);
   }
 }
 
@@ -367,7 +399,7 @@ function setup() {
     bigBosters.push(deepCopy(bigbosterTemplate));
   });
   bigBosters.forEach((bigBoster) => {
-    bigBoster.pos.x = rnd(10, G.WIDTH-10);
+    bigBoster.pos.x = rnd(10, G.WIDTH-15);
     bigBoster.pos.y = rnd(50, 0);
   });
   
@@ -380,19 +412,25 @@ function deepCopy(obj) {
 let rot = 0;
 let rot2 = 45;
 
+let stepBoulderDic = [{step: 120, boulder: 0}, {step: 90, boulder: 1}];
+let bigBoulders = [];
+
 let bigBoulder = {
-  pos: vec(G.WIDTH+25, G.HEIGHT / 2),
+  pos: vec(G.WIDTH+30, G.HEIGHT / 2),
   size: 10,
   rotation: 0,
-  dir: vec(-0.1,0.2)
+  dir: vec(-0.15,0.2)
 };
 
 let bigBoulder2 = {
-  pos: vec(-10, G.HEIGHT / 5),
+  pos: vec(-30, G.HEIGHT / 5),
   size: 10,
-  rotation: 0,
-  dir: vec(0.1,-0.2)
+  rotation: 2,
+  dir: vec(0.15,0.2)
 };
+bigBoulders.push(bigBoulder);
+bigBoulders.push(bigBoulder2);
+
 
 let angle = 0;
 function drawBigBoulder(obj = bigBoulder) {
@@ -400,8 +438,8 @@ function drawBigBoulder(obj = bigBoulder) {
   //  bigBoulder.pos.x = G.WIDTH/2 + 10 * Math.cos(angle);
   //  bigBoulder.pos.y = G.HEIGHT/2 + 20 * Math.sin(angle);
   let offset = vec(5, 3);
-  obj.pos.x -= 0.1;
-  obj.pos.y += 0.2;
+  obj.pos.x += obj.dir.x;//0.1;
+  obj.pos.y += obj.dir.y;//0.2;
   angle += 0.01;
 
   let col = [];
