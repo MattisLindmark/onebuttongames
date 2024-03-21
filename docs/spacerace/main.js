@@ -140,11 +140,13 @@ let shieldBonus ={
   rotation: 0
 };
 
-
+let PL_MaxReachedStep = 0; // <-- Håller reda på hur högt PL någonsin klättrat.
 let DEBUGG = 0;
+// ==================================================================================================== MAIN ===
 function update() {
   if (!ticks) {
     setup();
+    PL_MaxReachedStep = player.pos.y;
     //setupRocks();
   }
 
@@ -167,7 +169,9 @@ function update() {
   //   shieldcount = 100;
   // }
 
-  
+  if (PL_MaxReachedStep > player.pos.y) {
+    PL_MaxReachedStep = player.pos.y;
+  }  
   
   
   drawBgr();
@@ -186,10 +190,16 @@ function update() {
   }
   drawBigBosters();
 
-  testArcB();
-  text("PLy: " + player.pos.y, 3, 10);
-  drawGoalLine();
+  if (PL_MaxReachedStep < 101) {
+    drawBigBoulder(bigBoulder);
+  }
 
+  if (PL_MaxReachedStep < 119) {
+    drawBigBoulder(bigBoulder2);
+  }
+
+  text("PLy: " + PL_MaxReachedStep, 3, 10);
+  drawGoalLine();
 }
 
 let goalY = -10;
@@ -371,27 +381,34 @@ let rot = 0;
 let rot2 = 45;
 
 let bigBoulder = {
-  pos: vec(G.WIDTH / 2, G.HEIGHT / 2),
+  pos: vec(G.WIDTH+25, G.HEIGHT / 2),
   size: 10,
-  rotation: 0
+  rotation: 0,
+  dir: vec(-0.1,0.2)
+};
+
+let bigBoulder2 = {
+  pos: vec(-10, G.HEIGHT / 5),
+  size: 10,
+  rotation: 0,
+  dir: vec(0.1,-0.2)
 };
 
 let angle = 0;
-function testArcB(r = 1) {
+function drawBigBoulder(obj = bigBoulder) {
   color("light_red");
-
   //  bigBoulder.pos.x = G.WIDTH/2 + 10 * Math.cos(angle);
   //  bigBoulder.pos.y = G.HEIGHT/2 + 20 * Math.sin(angle);
   let offset = vec(5, 3);
-  bigBoulder.pos.x -= 0.1;
-  bigBoulder.pos.y += 0.2;
+  obj.pos.x -= 0.1;
+  obj.pos.y += 0.2;
   angle += 0.01;
 
   let col = [];
-  let modPos = vec(bigBoulder.pos.x + offset.x, bigBoulder.pos.y + offset.y);
-  col.push(arc(modPos, bigBoulder.size, bigBoulder.size * 2));
-  modPos = vec(bigBoulder.pos.x - offset.x, bigBoulder.pos.y - offset.y);
-  col.push(arc(modPos, bigBoulder.size, bigBoulder.size * 2));
+  let modPos = vec(obj.pos.x + offset.x, obj.pos.y + offset.y);
+  col.push(arc(modPos, obj.size, obj.size * 2));
+  modPos = vec(obj.pos.x - offset.x, obj.pos.y - offset.y);
+  col.push(arc(modPos, obj.size, obj.size * 2));
 
   /*
   
@@ -416,8 +433,6 @@ function testArc() {
   // Draw an arc that takse up 1/4 of the right side of the screen.
   color("light_red");
     arc(G.WIDTH+15-arcY, G.HEIGHT/14+arcY, G.WIDTH/5, 15);
-    
-
     // same but on the left side
     arc(-25+arcY, G.HEIGHT/2+arcY, G.WIDTH/4, 25);
 }
@@ -647,7 +662,7 @@ function checkCollisions(coldata)
     if (coldata.rock.sprite == "f") { // ==== BOOSTER ====
       play("coin");
       shieldcount += 40;
-      player.pos.y -= 10; //5, 2,33,DEBUGG
+      player.pos.y -= 10; //5, 2,33,DEBUGG    
       color("yellow");
       particle(player.pos, 5, 3, 33, 0.5);
       color("black");
