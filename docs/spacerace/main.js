@@ -1,7 +1,7 @@
-//title = "SpceRace";
+title = "SpceRace";
 
-//description = ` Drive throu the space debris field stuff.
-//`;
+description = `Race the space!
+`;
 
 characters = [
   ` 
@@ -119,10 +119,10 @@ let levelData = { // ******* OBS denna är som fucked up. den sätts i ResetStuf
   level: 1,
   score: 0,
   lives: 3,
-  rocks: 2,
+  rocks: 1,
   boosters: 3,
   globalspeed: 1,
-  shieldtime: 120,
+  shieldtime: 160,
   bigBoulderIndex: 0
 };
 
@@ -150,26 +150,42 @@ let CHEATMODE = false;
 // ==================================================================================================== MAIN ===
 function update() {
   if (!ticks) {
+    sss.setSeed(0);
+    console.log("No Ticks");
     setup();
-    timer = 0;
+    timer = -1;
     PL_MaxReachedStep = player.pos.y;
     //setupRocks();
   }
-
+  
+  
+  // drawBigBoulder(bigBoulders[4]);
+  // drawBigBoulder(bigBoulders[5]);
+  // return;
+  
+  
+  text("T:"+timer,2,10); 
   
   if (leveltransition)
   {
+    color ("yellow")
+    text("TimeBonus "+checkTimeBonus(),15,35);
     let clr = LoopColor(3);
     color(clr);
-    char("a", player.pos);  
-    text("Level " + levelData.level, G.WIDTH / 2 - 35, G.HEIGHT / 2-20, {scale: {x: 2, y: 2}});
+    let tmp = levelData.level+1;
+    char("a", player.pos);
+    text("Level " + tmp, G.WIDTH / 2 - 35, G.HEIGHT / 2-20, {scale: {x: 2, y: 2}});
     text("Get ready", G.WIDTH / 2 - 25, G.HEIGHT / 2 );
     return;
   }
 
-  if (ticks % 60 == 0 && shieldBonus.isActive == false && rnd(0, 10) > 9) {
+  color("black");
+  text("Lvl:"+levelData.level,G.WIDTH/2-18,3);
+ 
+  if (ticks % 60 == 0 && shieldBonus.isActive == false && rnd(0, 10) > 8) {
     shieldBonus.isActive = true;
-    shieldBonus.pos.y = rnd(-20,-40);    
+    shieldBonus.pos.y = rnd(-20,-40);
+    shieldBonus.pos.x = rnd(3, G.WIDTH-3);
   }
 
 /* //=== What the heck is up with the particles? Find out here! ===
@@ -202,7 +218,7 @@ function update() {
     drawShield();
   }
 
-  if (ticks % 100 == 0) {
+  if (ticks % 60 == 0) {
     timer ++;
     checkBigBosters();
   }
@@ -222,13 +238,13 @@ function update() {
     drawBigBoulder(bigBoulder2);
   }
 */
-  text("MaxStep: " + PL_MaxReachedStep, 3, 10);
+//  text("MaxStep: " + PL_MaxReachedStep, 3, 10);
   drawGoalLine();
   drawDeathZone();
 }
 
 function drawDeathZone() {
-  let posy = G.HEIGHT -timer*levelData.level;
+  let posy = G.HEIGHT -(timer/2)*levelData.level;
 
   // ---- om man vill ha den statiskt längst ned och synas bara när pl är nära.
  // let posy = G.HEIGHT +135 - player.pos.y-5; //<-- make it go up
@@ -240,7 +256,7 @@ function drawDeathZone() {
   
   color("light_red");
   //let col = line(G.WIDTH, posy, 0, posy, 3);
-  let col = rect(-5, posy, G.WIDTH+5, G.HEIGHT-posy);
+  let col = rect(-5, posy, G.WIDTH+15, G.HEIGHT-posy);
 
   if (col.isColliding.char.a) {
     play("explosion");
@@ -280,35 +296,13 @@ function drawGoalLine() {
   }
 }
 
-function nextLevel() {
-  levelData.level ++;
-  levelData.rocks += 2;
-  levelData.globalspeed += 0.2;
-  player.pos = vec(G.WIDTH/2, G.HEIGHT-(G.HEIGHT/4));
-  player.direction = 1;
-  
-  levelData.bigBoulderIndex = (levelData.bigBoulderIndex + 2)%bigBoulders.length;
-  console.log("boulderindex: " + levelData.bigBoulderIndex);
-
-  bigBoulders.forEach((bigBoulder) => {
-    bigBoulder.pos = vec(bigBoulder.s_pos.x, bigBoulder.s_pos.y);
-  });
-
-  
-
-//  levelData.shieldtime += 20;
-  timer = 0;
-  PL_MaxReachedStep = player.pos.y;
-  leveltransition = false;
-}
-
 function checkBigBosters() {
   let inactiveBoster = bigBosters.find(bigBoster => !bigBoster.isActive);
 
   if (inactiveBoster) {
     inactiveBoster.isActive = true;
     inactiveBoster.pos.y = rnd(-10, 0);
-    inactiveBoster.pos.x = rnd(2, G.WIDTH-15);
+    inactiveBoster.pos.x = rnd(6, G.WIDTH-15);
   }
 }
 
@@ -330,12 +324,12 @@ function drawBigBosters() {
     color("green");
     let left = bigBoster.pos.x - 5;
     let right = bigBoster.pos.x + 5;
-    let down = bigBoster.pos.y + 3;
+    let down = bigBoster.pos.y + 5;
     colA = line(bigBoster.pos.x, bigBoster.pos.y,left, down, 2);
     colB = line(bigBoster.pos.x, bigBoster.pos.y,right, down, 2);
 
     if (colA.isColliding.char.a || colB.isColliding.char.a) {
-      play("coin");
+      play("laser");//,{numberOfSounds: 3}
       shieldcount += 40;
       player.pos.y -= 10; //5, 2,33,DEBUGG
       color("yellow");
@@ -351,24 +345,23 @@ function drawBigBosters() {
 function drawShieldBonusItem() {
   if (shieldBonus.isActive) {
     shieldBonus.pos.y += shieldBonus.speed;
-    if (shieldBonus.pos.y > G.HEIGHT) {
-      shieldBonus.pos.y = rnd(-20,-40);
-      shieldBonus.pos.x = rnd(2, G.WIDTH-2);
-      shieldBonus.isActive = false;
-    }
     color(LoopColor(4));
     if (char("k", shieldBonus.pos).isColliding.char.a) {
       shieldBonus.isActive = false;
       shieldcount += levelData.shieldtime;
-      play("coin");
+      play("powerUp");
       color("yellow");
       particle(player.pos, 5, 3, 33, 0.5);
       color("black");
       particle(player.pos, 5, 2, 33, 0.2);
     }
-
   }
-
+  
+  if (shieldBonus.pos.y > G.HEIGHT) {
+//    shieldBonus.pos.y = rnd(-10,-40);
+//    shieldBonus.pos.x = rnd(5, G.WIDTH-5);
+    shieldBonus.isActive = false;
+  }
 }
 
 function drawShield() {
@@ -437,32 +430,96 @@ function setup() {
   addRocksB(levelData.rocks);
   //  addBoosters(3);
   
+  setupBigBoulders();
+  PL_MaxReachedStep = player.pos.y;  
+
   bigBosters = [];
-  times(3, () => {
+  times(4, () => {
     bigBosters.push(deepCopy(bigbosterTemplate));
   });
-  bigBosters.forEach((bigBoster) => {
+  bigBosters.forEach((bigBoster) => { // Detta verkar ej ha effekt. sätts nån annanstanns.
     bigBoster.pos.x = rnd(10, G.WIDTH-15);
     bigBoster.pos.y = rnd(50, 0);
   });
-
-  
 }
+
+function checkTimeBonus() {
+  let timeBonus = 0;
+  console.log("LevelTimer = "+timer);
+  if (timer < 30) {
+    timeBonus = 2;
+  } 
+  if (timer < 20) {
+    timeBonus = 4;
+  } 
+  if (timer < 16) {
+    timeBonus = 6;
+  } 
+  if (timer < 13) {
+    timeBonus = 8;
+  }
+  if (timer < 11) {
+    timeBonus = 10;
+  }
+  return timeBonus;
+}
+
+function nextLevel() {
+  score += 5;
+  score += checkTimeBonus();
+
+  levelData.level ++;
+  levelData.rocks += 1;
+  levelData.globalspeed += 0.2;
+  player.pos = vec(G.WIDTH/2, G.HEIGHT-(G.HEIGHT/4));
+  player.direction = 1;
+  
+  levelData.bigBoulderIndex = (levelData.bigBoulderIndex + 2)%bigBoulders.length;
+  // if (levelData.bigBoulderIndex > 2) {
+  //   levelData.bigBoulderIndex = 0;
+  //   console.log("boulderindex: " + levelData.bigBoulderIndex +" of"+ bigBoulders.length);
+  // }
+
+  rocks = [];
+  addRocksB(levelData.rocks);
+
+  // reset bigbosters
+  bigBosters.forEach((bigBoster) => {
+//    bigBoster.pos.x = rnd(10, G.WIDTH-15);
+//    bigBoster.pos.y = rnd(G.HEIGHT/2, 10);
+    bigBoster.isActive = false;
+  });
+  //----
+
+  bigBoulders.forEach((bigBoulder) => {
+    bigBoulder.pos = vec(bigBoulder.s_pos.x, bigBoulder.s_pos.y);
+  });
+//  levelData.shieldtime += 20;
+  timer = 0;
+  shieldcount = 0;
+  shieldBonus.isActive = false;
+  PL_MaxReachedStep = player.pos.y;
+  leveltransition = false;  
+}
+
 
 function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-let rot = 0;
-let rot2 = 45;
 
 let stepBoulderDic = [{step: 120, boulder: 0}, {step: 90, boulder: 1}];
 let bigBoulders = [];
 
+function setupBigBoulders(){
+let rot = 0;
+let rot2 = 45;
+
+bigBoulders = [];
 let bigBoulder = {
   pos: vec(G.WIDTH+30, G.HEIGHT / 2),
   s_pos: vec(G.WIDTH+30, G.HEIGHT / 2),
-  size: 10,
+  size: 9,
   rotation: 0,
   dir: vec(-0.15,0.2)
 };
@@ -470,7 +527,7 @@ let bigBoulder = {
 let bigBoulder2 = {
   pos: vec(-30, G.HEIGHT / 5),
   s_pos: vec(-30, G.HEIGHT / 5),
-  size: 10,
+  size: 9,
   rotation: 2,
   dir: vec(0.15,0.2)
 };
@@ -478,22 +535,56 @@ let bigBoulder2 = {
 let bigBoulder3 = {
   pos: vec(G.WIDTH/2, -20),
   s_pos: vec(G.WIDTH/2, -20),
-  size: 10,
+  size: 7,
   rotation: 2,
   dir: vec(0.01,0.5)
 };
 let bigBoulder4 = {
   pos: vec(G.WIDTH, -20),
   s_pos: vec(G.WIDTH, -20),
-  size: 8,
+  size: 7,
   rotation: 2,
   dir: vec(-0.2,0.7)
 };
+let bigBoulder5 = {
+  pos: vec(-40, 20),
+  s_pos: vec(-40, 20),
+  size: 7,
+  rotation: 2,
+  dir: vec(0.3,0.15)
+};
+let bigBoulder6 = {
+  pos: vec(-30, G.HEIGHT/4),
+  s_pos: vec(-30, G.HEIGHT/4),
+  size: 9,
+  rotation: 2,
+  dir: vec(0.15,-0.03)
+};
+let bigBoulder7 = {
+  pos: vec(G.WIDTH/4, -20),
+  s_pos: vec(G.WIDTH/4, -20),
+  size: 11,
+  rotation: 2,
+  dir: vec(0.05,0.5)
+};
+let bigBoulder8 = {
+  pos: vec(G.WIDTH-20, -20),
+  s_pos: vec(G.WIDTH-20, -20),
+  size: 7,
+  rotation: 2,
+  dir: vec(-0.05,0.6)
+};
+
 
 bigBoulders.push(bigBoulder);
 bigBoulders.push(bigBoulder2);
 bigBoulders.push(bigBoulder3);
 bigBoulders.push(bigBoulder4);
+bigBoulders.push(bigBoulder5);
+bigBoulders.push(bigBoulder6);
+bigBoulders.push(bigBoulder7);
+bigBoulders.push(bigBoulder8);
+}
 
 
 let angle = 0;
@@ -560,7 +651,7 @@ function ResetStuff() {
     level: 1,
     score: 0,
     lives: 3,
-    rocks: 2,
+    rocks: 1,
     boosters: 3,
     globalspeed: 1,
     shieldtime: 120,
@@ -568,6 +659,7 @@ function ResetStuff() {
   };
   shieldcount = 0;
   shieldBonus.isActive = false;
+  levelData.bigBoulderIndex = 0;
 }
 
 // function pseudoRandom(seed) {
@@ -585,7 +677,7 @@ function addRocksB(ammount = 3) {
       let spr = rocksprites[i % rocksprites.length];
       let rock = {
         pos: vec(rnd(0, G.WIDTH), rnd(G.HEIGHT * -1, 0)),
-        speed: (t==ammount-1)? 0.5:1,  //1+(ammount*0.5)-value,
+        speed:(value==1)?1:0.5,//(t==ammount-1)? 0.5:1,  //1+(ammount*0.5)-value,
         isActive: true,
         size: vec(value, value),
         rotation: rndi(0, 3),
