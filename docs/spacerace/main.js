@@ -84,7 +84,7 @@ options = {
     theme: "shapeDark",
   //  isShowingTime: true,
   //  isCapturing: true,
-  //  captureCanvasScale: .2,
+  //  captureCanvasScale: .3,
   //  isCapturingGameCanvasOnly: true
   //isDrawingParticleFront: true
 };

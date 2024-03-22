@@ -54,6 +54,11 @@
         "title": "Stack The Heap",
         "folderName": "stacktheheap",
         "description": "Hack the past, command the future, controll the RAM and STACK the HEAP!"
+      },
+      {
+        "title": "Space Race",
+        "folderName": "spacerace",
+        "description": "Rase the stakes, break the limits and and claim victory!"
       }
 
     ]
