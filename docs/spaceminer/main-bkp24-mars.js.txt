@@ -1,0 +1,262 @@
+//title = "ZpaceMiner";
+
+//description = `Mine the good stuff, avoid the looser rocks
+//`;
+
+characters = [
+  `
+   l
+  ll
+ llll
+llllll
+ll  ll
+`, `
+llll
+llllll
+ lllll
+  lll
+`, `
+  lll
+lllll
+ lllll
+  lll
+`, `
+  lll
+lllll
+ lllll
+  lll
+`, `
+  lll
+lllll
+  lllll
+    lll
+`,
+  `
+tttttt
+tttttt
+tttttt
+tttttt
+tttttt
+tttttt
+`, `
+  ll  
+  ll
+  ll
+  ll
+  ll
+llllll
+`
+];
+
+const G = {
+  WIDTH: 200,
+  HEIGHT: 100
+};
+
+options = {
+  viewSize: { x: G.WIDTH, y: G.HEIGHT },
+  //isPlayingBgm: true,
+  isReplayEnabled: true,
+  seed: 1,
+  theme: "dark",
+};
+/**
+* @typedef { object } rocks - It is a rock.
+* @property { Vector } pos - it has a pos.
+* @property { number } speed - it has a speed/direction
+* @property { number } step - it has a step.
+*/
+
+let rocks;
+let gems;
+
+const player = {
+  pos: vec(100, 50),
+  speed: 1,
+  sprite: "a",
+  plc: null
+};
+
+function update() {
+  if (!ticks) {
+    setupRocks();
+    setupGems();
+  }
+  displayRocksAndGems();
+  movePlayer();
+  checkCollisions();
+  //displayGems();
+
+  // check if player has collided with a gem
+  // if (player.isColliding.rect.green) {
+  //   play("coin"); 
+  // }
+
+
+}
+
+function mapCharRotationToBar(charRotation) {
+  switch(charRotation) {
+    case 0: return 11; // Up
+    case 1: return 0;  // Right
+    case 2: return 33; // Down
+    case 3: return 22; // Left
+    default: return 0; // Default to right
+  }
+}
+
+
+let r = 0;
+let rr = -1;
+//let tmp = 0;
+function movePlayer() {
+  //  let r = Math.atan2(input.pos.y - player.pos.y, input.pos.x - player.pos.x);
+  r = ticks % 60 == 0 ? 1:0;//45 : 0;
+  rr += r;
+  rr = rr % 4;
+
+  color("black");
+  //let plc = char("a", player.pos, {rotation: r});
+  let plc = char("g", player.pos, { rotation: rr, scale: { x: 2, y: 2 } }); // 0 up. 1= right, 2= down, 3= left
+  bar(player.pos, 40, 1,mapCharRotationToBar(rr),0.2); // 0=right, 11=up, 22=Left, 33=down
+
+  //  player.pos = vec(input.pos.x, input.pos.y); //<-- move by mouse.
+
+  calculatePlayerPosition();
+
+  player.plc = plc;
+
+
+  // if (plc.isColliding.char.c) {
+  //   remove(rocks, (r) => {
+  //     return char("c", r.pos).isColliding.char.a;
+  //   });
+  //   play("hit");
+  // }
+
+  if (player.plc.isColliding.char.d || player.plc.isColliding.char.e) {
+    gems.forEach((gem) => {
+      if (char("e", gem.pos).isColliding.char.a) {
+        addScore(10, gem.pos);
+        gems.splice(gems.indexOf(gem), 1);
+        play("coin");
+      }
+    });
+    //play("explosion");
+  };
+
+
+  // if (pc == true) {
+  //   particle(player, 10, 2);
+  //   play("coin");
+  //   console.log("player collided with cyan");
+  // }
+}
+
+function checkCollisions() {
+  // check if player has collided with a rock
+  if (player.plc.isColliding.char.c) {
+    play("hit");
+  }
+}
+
+let thrust = 0;
+let damping = 0.99;
+
+function calculatePlayerPosition() {
+  if (input.isPressed) {
+    thrust += 0.01;
+  }
+  thrust *= damping;
+
+  // what is players forward vector
+  let plFrwd = vec(1, 0).rotate(rr);
+  player.pos.add(plFrwd.mul(thrust));
+  player.pos.wrap(0, G.WIDTH, 0, G.HEIGHT);
+
+  // show forward direction by drawing a line from Player position and 1 unity in forward direction. Only visual, do not change any values
+  //color("black");
+  let endPoint = vec(0,0);
+  endPoint.y = player.pos.y;
+  endPoint.x = player.pos.x;
+  endPoint.add(plFrwd.mul(1000));
+  color("red");
+  line(player.pos, endPoint);
+  text("rr: " + rr, 10, 10);
+}
+
+
+
+// if (input.isJustPressed) {
+//   color("black");
+//   particle(player, 10, 2);
+// }
+
+
+
+
+function setupRocks() {
+  rocks = times(10, () => {
+    const posX = rnd(5, G.WIDTH - 5);
+    const posY = rnd(5, G.HEIGHT - 5);
+    return {
+      step: Math.floor(rnd(0, 200)),
+      pos: vec(posX, posY),
+      speed: rnd(-0.1, 0.1),
+      sprite: rnd(1) < 0.6 ? "b" : "c"
+    };
+  });
+}
+
+function setupGems() {
+  gems = times(10, () => {
+    const posX = rnd(5, G.WIDTH - 5);
+    const posY = rnd(5, G.HEIGHT - 5);
+    return {
+      step: Math.floor(rnd(0, 200)),
+      pos: vec(posX, posY),
+      speed: rnd(-0.1, 0.1),
+      sprite: rnd(1) < 0.6 ? "d" : "e"
+    };
+  });
+}
+
+function displayRocksAndGems() {
+  color("light_black");
+
+  rocks.forEach((rock) => {
+    char(rock.sprite, rock.pos);
+    rock.step++;
+    // every third step, move rock in opposite direction
+    if (rock.step % 100 === 0) {
+      rock.speed *= -1;
+    }
+    rock.pos.y += rock.speed;
+    rock.pos.wrap(0, G.WIDTH, 0, G.HEIGHT);
+  });
+  color("green");
+  gems.forEach((gem) => {
+    char(gem.sprite, gem.pos);
+    gem.step++;
+    // every third step, move rock in opposite direction
+    if (gem.step % 100 === 0) {
+      gem.speed *= -1;
+    }
+    gem.pos.y += gem.speed;
+    gem.pos.wrap(0, G.WIDTH, 0, G.HEIGHT);
+  });
+}
+
+
+// ------------------------ Saved Sprite
+// title = "ZpaceMiner";
+/*
+`
+  ll  
+  ll
+ llll
+llllll
+ll  ll
+llllll
+`
+*/
