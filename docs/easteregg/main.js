@@ -45,7 +45,7 @@ options = {
 */
 
 let orgEgg = {
-  pos: vec(G.WIDTH * 0.5, G.HEIGHT/4),
+  pos: vec(G.WIDTH * 0.4, G.HEIGHT/4),
   speed: 1,
   vel: vec(0, 0),
   color: "black",
@@ -59,6 +59,8 @@ let platta = {
   thick: 10,
   length: G.WIDTH / 5,
   speed: 3,
+  isJumped: false, // is it jumped this time?
+  number: 0,
 };
 
 let Player = {
@@ -72,31 +74,51 @@ let eggPool = [];
 let lastCollission = 0;
 
 function reset() {
-  orgEgg.pos = vec(G.WIDTH * 0.5, G.HEIGHT/4);
+  orgEgg.pos = vec(G.WIDTH * 0.4, G.HEIGHT/4);
   orgEgg.vel = vec(0, 0);
   orgEgg.bounce = 0.8;
   orgEgg.bounceX = false;
   orgEgg.bounceY = false;
   setupEggPool();
-  platta.pos = vec(G.WIDTH+50, G.HEIGHT-8);
+  platta.pos = vec(G.WIDTH+40, G.HEIGHT-8);
   //platta.thick = 5;
   platta.length = G.WIDTH / 5;
   platta.speed = 3;
+  platta.isJumped = false;
+  platta.number = 0;
   score = 0;
   lastCollission = 0;
 }
 let houseCenterX = G.WIDTH;
+
+let CHEATMODE = false;
+
+//let debuggMaxHeight = 1000;
+let levelUp = 0;
 // ================================================== Main Loop
 function update() {
   if (!ticks) {
     houseCenterX = G.WIDTH;
     reset();
+  //  debuggMaxHeight = 1000;
     orgEgg.color = "black";
+    levelUp = 0;
     setupEggPool();
-    setupNightSky();    
+    setupNightSky();
   }
 
-  if (score % 5 == 0 && score > 0) {
+  // if (orgEgg.pos.y < debuggMaxHeight) {
+  //   debuggMaxHeight = orgEgg.pos.y;
+  // }
+  // text("DH " + debuggMaxHeight, 3, 3);
+
+  if (orgEgg.pos.y < 1 && ticks % 5 == 0){
+    score ++;
+    play("coin");
+  }
+
+  if (platta.number % 5 == 0 && score > 0 && levelUp < platta.number) {
+    levelUp = platta.number;
     score ++;
     play("powerUp");
     orgEgg.color = getRandomColor();
@@ -124,12 +146,21 @@ function update() {
     if (ticks - lastCollission > 10) {
       score ++;
       play("jump");
+      platta.isJumped = true;
       orgEgg.bounceY = true;
       lastCollission = ticks;
     }
   }
   if (orgEgg.pos.y > G.HEIGHT+20) {
+    if (CHEATMODE) {
+      orgEgg.pos.y = G.HEIGHT-20;
+      orgEgg.bounceY = true;
+      lastCollission = ticks;
+      console.log("vy "+orgEgg.vel.y);
+      orgEgg.vel.y -= 2.5;
+    } else {
     end();
+    }
   }
   //text("Easter Egg - \nthe eggiest easter there is", 3, 8);
   //draw();
@@ -140,6 +171,11 @@ function movePlatta(platta) {
   platta.pos.x -= platta.speed;
   if (platta.pos.x+platta.length < 0) {
     platta.pos.x = G.WIDTH;
+    platta.number ++;
+    if (!platta.isJumped) {
+      play("coin");
+    }
+    platta.isJumped = false;
     platta.length -= 0.2;
     platta.speed += 0.1;
   }
