@@ -59,7 +59,12 @@
         "title": "Space Race",
         "folderName": "spacerace",
         "description": "Rase the stakes, break the limits and and claim victory!"
+      },      {
+        "title": "Egg Escape",
+        "folderName": "eggescape",
+        "description": "A side-scrolling saga where an egg’s determination propels it beyond the confines of the coop!"
       }
+
 
     ]
   }
