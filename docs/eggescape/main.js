@@ -81,13 +81,13 @@ let eggPool = [];
 let lastCollission = 0;
 
 function reset() {
-  orgEgg.pos = vec(G.WIDTH * 0.4, G.HEIGHT/4);
+  orgEgg.pos = vec(G.WIDTH * 0.4, G.HEIGHT/4); // W * 0.35 tidigare
   orgEgg.vel = vec(0, 0);
   orgEgg.bounce = 0.8;
   orgEgg.bounceX = false;
   orgEgg.bounceY = false;
   setupEggPool();
-  platta.pos = vec(G.WIDTH+40, G.HEIGHT-8);
+  platta.pos = vec(G.WIDTH+(G.WIDTH*0.2), G.HEIGHT-8); // för w-0.4 funkar +(w*0.12) här.
   //platta.thick = 5;
   platta.length = G.WIDTH / 5;
   platta.speed = 3;
