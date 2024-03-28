@@ -194,7 +194,13 @@ function update() {
       return;
     }
     if (orgEgg.pos.y < G.HEIGHT-20)
+    {
+//      particle(orgEgg.pos, 10, 2,5,3);
+      color("black");
+      particle(orgEgg.pos, rnd(8,11), 1.5);
+      play("hit", {volume: 0.5});
       orgEgg.vel.y = 5;// = vec(0, rnd(5,6)); // <- Stor del av speltestande var den 5
+    }
     }    
 
   color("green");
