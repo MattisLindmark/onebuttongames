@@ -108,7 +108,7 @@ function update() {
   }
   drawBgr();
   drawPlayer();
-  drawTrees();
+  //drawTrees();
 }
 
 
@@ -196,23 +196,62 @@ function drawPlayer() {
   if (radius > 15) {
     radius = 15;
   }
+  
+  let x = player.pos.x;
+  let y = player.pos.y;
 
-  angle += 0.1;
+  let wantedPos = vec(player.pos.x - player.vel.x*10, player.pos.y - player.vel.y * 10);
+  let targetAngle = Math.atan2(wantedPos.y - player.pos.y, wantedPos.x - player.pos.x);
 
-  // around the player a small dot should be circling
+  if (input.isPressed) {
+    angle += 0.1;    
+  } else {
+//    angle -= 0.1;
+    angle = targetAngle;
+  }
+  text("angle: " + angle, 10, 10);
+    // around the player a small dot should be circling
+    x = player.pos.x + radius * Math.cos(angle);
+    y = player.pos.y + radius * Math.sin(angle);
 
-  let x = player.pos.x + radius * Math.cos(angle);
-  let y = player.pos.y + radius * Math.sin(angle);
   char("c", x, y);
+
+  //char ("c", player.pos.x - player.vel.x*10, player.pos.y - player.vel.y * 10);
 
   // calculate a vector based on player position and the dot
   let forceDirection = vec(x - player.pos.x, y - player.pos.y);
+  
+  // draw line between player and dot
+  //  color("red");
+  //  line(player.pos.x, player.pos.y, x, y,1);
+  
+  // draw the force direction
+  color("blue");
+  line(player.pos.x, player.pos.y, player.pos.x + forceDirection.x, player.pos.y + forceDirection.y, 1);
   forceDirection.normalize();
-
-
+  
+  
   // calculate player position
   //calculatePlayerPosition(forceDirection.x, forceDirection.y);
+
   calculatePLposBasedOnRadius(forceDirection.y, forceDirection.x, radius * 0.01);
+
+/* Blev inte bra.  
+  if (input.isPressed) {
+    calculatePLposBasedOnRadius(forceDirection.y, forceDirection.x, radius * 0.01);
+  } else {
+    if (input.isJustReleased)
+    {
+      player.vel.x = forceDirection.x*-1;
+      player.vel.y = forceDirection.y*-1;
+    }
+    calculatePLposByForceDirection(forceDirection.y, forceDirection.x);
+  }
+  */
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
 }
 
 function drawWorld() {
@@ -220,6 +259,19 @@ function drawWorld() {
   pluttar.forEach((p) => {
     char(p.char, p.pos);
   });
+}
+
+function calculatePLposByForceDirection(dirY, dirX) {
+//  let forceDirection = vec(dirX, dirY);
+//  player.vel.x = forceDirection.x;
+//  player.vel.y = forceDirection.y;
+  DMP = 0.99;
+  player.vel.mul(DMP);
+  player.pos.x += player.vel.x;
+  player.pos.y += player.vel.y;
+
+  player.pos.wrap(0, G.WIDTH, 0, G.HEIGHT);
+
 }
 
 let DMP = 0;
