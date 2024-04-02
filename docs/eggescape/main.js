@@ -168,7 +168,7 @@ function update() {
     orgEgg.vel.y *= 0.5;
       GRAVITY -= 0.01 ;//-= 0.001;
     
-    text("GRAVITY: " + GRAVITY, 3, 15);
+    //text("GRAVITY: " + GRAVITY, 3, 15);
     // if (orgEgg.vel.y > 2) {
     //   orgEgg.vel.y =2;    
     // }
