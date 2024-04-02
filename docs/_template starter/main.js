@@ -44,5 +44,7 @@ options = {
 
 function update() {
   if (!ticks) {
+//    sss.setSeed(5);
+//    sss.setVolume(0.05);
   }
 }
