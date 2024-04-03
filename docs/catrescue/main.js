@@ -43,7 +43,8 @@ options = {
   isReplayEnabled: true,
   //  seed: 1,
   //  isShowingScore: false,
-    theme: "crt",
+   theme: "crt",
+//    theme: "shapeDark",
   //  isShowingTime: true,
   //  isCapturing: true,
   //  captureCanvasScale: .2,
@@ -56,6 +57,24 @@ options = {
 * @property { number } speed - it has a speed/direction
 */
 
+// Spawnpoints stuff
+let spawnpoints = 
+  {
+    instansiated: false,
+    leftPoints: [
+      { pos: vec(0, 0), timer: 0, ready: false },
+      { pos: vec(0, 0), timer: 0, ready: false },
+      { pos: vec(0, 0), timer: 0, ready: false }
+    ],
+    rightPoints: [
+      { pos: vec(0, 0), timer: 0, ready: false },
+      { pos: vec(0, 0), timer: 0, ready: false },
+      { pos: vec(0, 0), timer: 0, ready: false }
+    ]
+  }
+;
+
+
 let playerPlatta = {
   pos: vec(G.WIDTH, G.HEIGHT-8),
   thick: 10,
@@ -66,7 +85,13 @@ let playerPlatta = {
   direction: 1,
 };
 
-let orgEgg = {
+let leveldata = {
+  level: 1,
+  plattaSpeed: 3,
+  plattaLength: G.WIDTH / 5,
+};
+
+let orgCat = {
   startPos: vec(G.WIDTH, G.HEIGHT/4),
   pos: vec(G.WIDTH * 0.4, G.HEIGHT/4),
   isActive: false,
@@ -78,7 +103,7 @@ let orgEgg = {
   bounceY: false,
 };
 
-let eggPool = [];
+let catPool = [];
 let lastCollission = 0;
 const GRAVITY = 0.1;
 
@@ -88,43 +113,88 @@ const WBS = { // WALL BOUNCE SETTINGS
   returnToPool: true,    
 }
 
+let wantedSpeed = 0;
+
+let dir = leveldata.plattaSpeed;
+let clickTimer = 0;
 // ================================================== Main Loop
 function update() {
   if (!ticks) {
-    setupEggPool();  
+    setupCatPool();
+    dir = leveldata.plattaSpeed;
   }
-  color("black");
+   color("black");
   char("a", 40, 10, {scale: {x:2, y:2}});
+
+  
+  
+  if (input.isJustPressed) {
+    // if (clickTimer > 10) {
+    //   dir *= -1;
+    // }
+    clickTimer = 0;
+  }
+  
+  if (input.isPressed) {
+    clickTimer++;
+    wantedSpeed = dir*0.1;//leveldata.plattaSpeed;  
+  } 
+  if (input.isJustReleased) {
+    if (clickTimer < 10) {
+      dir *= -1;
+    }
+    wantedSpeed = dir;
+  }
+  
+  playerPlatta.speed = lerp(playerPlatta.speed, wantedSpeed, 0.1);
+  
+  if (!spawnpoints.instansiated) { // fullösning... huvva... TODO: Move to setup. Snygga till.
+    let tmp = spawnPointsLeft(0,20);
+    for (let i = 0; i < tmp.length; i++) {
+      spawnpoints.leftPoints[i].pos = tmp[i];
+    }
+    tmp = spawnPointsRight(-G.WIDTH,10);
+    for (let i = 0; i < tmp.length; i++) {
+      spawnpoints.rightPoints[i].pos = tmp[i];
+    }
+    spawnpoints.instansiated = true;
+  }
+
+  drawTreesXY(0,20);
+  drawTreesXYmirror(-G.WIDTH,10);
+
+
   movePlatta(playerPlatta);
   color("green");
   let col = rect(playerPlatta.pos.x, playerPlatta.pos.y, playerPlatta.length, playerPlatta.thick);
   color("black");
-  drawEggs();
+  drawCats();
 
+  color("black");
+  if (dir>0) {
+    text(">", playerPlatta.pos.x+playerPlatta.length/2, playerPlatta.pos.y+3);//, {scale: {x:2, y:2}});
+  } else {
+    text("<", playerPlatta.pos.x+playerPlatta.length/2, playerPlatta.pos.y+3);//, {scale: {x:2, y:2}});
+  }
+  
   if (ticks % 120 === 0) {
-//    eggPool.forEach(e => {if (e.bounceX) e.color = "light_blue";});
-    let egg = eggPool.find(e => !e.isActive);
-    if (egg) {
-      egg.isActive = true;
-   //   egg.pos = vec(50, 50);
+    //    catPool.forEach(e => {if (e.bounceX) e.color = "light_blue";});
+    let cat = catPool.find(e => !e.isActive);
+    if (cat) {
+      cat.isActive = true;
+      //   egg.pos = vec(50, 50);
    //   egg.vel = vec(1, -2);
     }
 
-    // if (!egg) {
-    //   console.log("No more eggs in pool");
-    //   eggPool = [];
-    //   setupEggPool();
-    // }
   }
 
 
 }
 
 //================================================== Main Functions
-function drawEggs() {
-  
-  for (let i = 0; i < eggPool.length; i++) {    
-    const egg = eggPool[i];
+function drawCats() {  
+  for (let i = 0; i < catPool.length; i++) {    
+    const egg = catPool[i];
     if (!egg.isActive) continue;
     bounceEgg(egg);
     color(egg.color);
@@ -146,48 +216,48 @@ function checkPlattaCollission(egg, collission) {
 }
 
 
-function checkWallBounce(egg) {
+function checkWallBounce(cat) {
   if (!WBS.bouncheX && !WBS.bouncheY) {
     if (!WBS.returnToPool){
       return;
     }
   }
   
-  if (egg.pos.y > G.HEIGHT) {
+  if (cat.pos.y > G.HEIGHT) {
     if (WBS.bouncheY){
-      egg.pos.y = G.HEIGHT;
-      egg.bounceY = true;
+      cat.pos.y = G.HEIGHT;
+      cat.bounceY = true;
     } else {
-      resetEgg(egg);
+      resetCat(cat);
     }
   }
-  if (egg.pos.x > G.WIDTH || egg.pos.x < 0 && WBS.bouncheX) {
+  if (cat.pos.x > G.WIDTH || cat.pos.x < 0 && WBS.bouncheX) {
     if (WBS.bouncheX) {
-      egg.bounceX = true;
-      if (egg.pos.x > G.WIDTH) egg.pos.x = G.WIDTH;
-      if (egg.pos.x < 0) egg.pos.x = 0;
+      cat.bounceX = true;
+      if (cat.pos.x > G.WIDTH) cat.pos.x = G.WIDTH;
+      if (cat.pos.x < 0) cat.pos.x = 0;
     } else {
-      resetEgg(egg);
+      resetCat(cat);
     }
   }
   
 }
 
-function bounceEgg(egg) {
+function bounceEgg(cat) {
   // Apply gravity
-  egg.vel.y += GRAVITY;
+  cat.vel.y += GRAVITY;
   
   
   // Bounce off the edges
-  if (egg.bounceX) {
-    egg.vel.x *= -egg.bounce;
-    egg.bounceX = false;
+  if (cat.bounceX) {
+    cat.vel.x *= -cat.bounce;
+    cat.bounceX = false;
   }
-  if (egg.bounceY) {
-    egg.vel.y *= -egg.bounce;
+  if (cat.bounceY) {
+    cat.vel.y *= -cat.bounce;
     //egg.pos.y -= 5; // this one is replaced by setting new pos.y in collission check
     //    egg.vel.y = -egg.vel.y * egg.bounce;//(Math.random() - 1) * 0.2;
-    egg.bounceY = false;
+    cat.bounceY = false;
   }
 }
 
@@ -204,29 +274,28 @@ function movePlatta(platta) {
     platta.pos.x = playerPlatta.length*-1;
   }  
   
-  if (input.isJustPressed) {
-    platta.direction *= -1;
-  }  
+  // if (input.isJustPressed) {
+  //   platta.direction *= -1;
+  // }  
 }
-
 
 //================================================== Setup Functions
-function resetEgg(egg) {
+function resetCat(cat) {
 //  console.log("reset egg"+ egg.startPos.y);
-  egg.isActive = false;
-  egg.pos = vec(egg.startPos.x, egg.startPos.y);
-  egg.vel = vec(-1, rnd(2) - 1);
-  egg.bounceX = false;
-  egg.bounceY = false;
-  egg.color = getRandomColor(); 
+  cat.isActive = false;
+  cat.pos = vec(cat.startPos.x, cat.startPos.y);
+  cat.vel = vec(-1, rnd(2) - 1);
+  cat.bounceX = false;
+  cat.bounceY = false;
+  cat.color = getRandomColor(); 
 }
 
-function setupEggPool() {
+function setupCatPool() {
   for (let i = 0; i < 10; i++) {
     let colstr = getRandomColor();
     let startPos = vec(rnd(G.WIDTH,G.WIDTH-5), rnd(G.HEIGHT/5));
     
-    eggPool.push({
+    catPool.push({
       isActive: false,
       startPos: startPos,
       pos: vec(startPos.x, startPos.y),//vec(rnd(100,G.WIDTH), rnd(G.HEIGHT/2)),
@@ -241,11 +310,101 @@ function setupEggPool() {
   
   // find all eggs with bounceX true and make them lightBlue
 
+}
 
-
+//================================================== cosmetics
+/* ==== OLD tree functuions ====
+function drawTrees() {
+let adjustY = 0;
+let xx = Math.sin(ticks * 0.1) * 0.1;
+color("light_yellow");
+// draw the trunk
+line(-2, 110, 10, 30,6);
+// draw the branches
+line(5, 90, 40, 80,4);
+line(8, 70, 30, 60,4);
+line(10, 50, 25, 40,4);
+// draw the leaves
+color("light_green");
+  arc(20, 45, 5, 3, 0.95- xx,0);
+  arc(30, 80, 5, 5, 4.8+xx);
+  arc(12, 90, 5, 3, 0.95- xx,0);
+  arc(12, 72, 3+(5*xx), 4, 5.5);
+  
+  // create spawnpoints at the tip of each bracnh
+  let spawnpointsLeft = [
+    vec(25, 35),
+    vec(28, 55),
+    vec(30, 80),
+  ];
+  // put char a at each spawnpoint
+  color("red");
+  spawnpointsLeft.forEach(spawnpoint => {
+    char("a", spawnpoint);
+  });
 
 }
 
+
+function drawTreesY(adjustY = 0) {
+  //let adjustY = 0; // adjust this value to move everything up or down
+  let xx = Math.sin(ticks * 0.1) * 0.1;
+  color("light_yellow");
+  // draw the trunk
+  line(-2, 110 - adjustY, 10, 30 - adjustY, 6);
+  // draw the branches
+  line(5, 90 - adjustY, 40, 80 - adjustY, 4);
+  line(8, 70 - adjustY, 30, 60 - adjustY, 4);
+  line(10, 50 - adjustY, 25, 40 - adjustY, 4);
+  // draw the leaves
+  color("light_green");
+  arc(20, 45 - adjustY, 5, 3, 0.95 - xx, 0);
+  arc(30, 80 - adjustY, 5, 5, 4.8 + xx);
+  arc(12, 90 - adjustY, 5, 3, 0.95 - xx, 0);
+  arc(12, 72 - adjustY, 3 + (5 * xx), 4, 5.5);
+
+  // create spawnpoints at the tip of each branch
+  let spawnpointsLeft = [
+    vec(25, 35 - adjustY),
+    vec(28, 55 - adjustY),
+    vec(30, 80 - adjustY),
+  ];
+  // put char a at each spawnpoint
+  color("red");
+  spawnpointsLeft.forEach(spawnpoint => {
+    char("a", spawnpoint);
+  });
+}
+*/
+
+function drawTreesXY(adjustX = 0, adjustY = 0) {
+  let xx = Math.sin(ticks * 0.1) * 0.1;
+  color("light_yellow");
+  // draw the trunk
+  line(-2 + adjustX, 110 - adjustY, 10 + adjustX, 30 - adjustY, 6);
+  // draw the branches
+  line(5 + adjustX, 90 - adjustY, 40 + adjustX, 80 - adjustY, 4);
+  line(8 + adjustX, 70 - adjustY, 30 + adjustX, 60 - adjustY, 4);
+  line(10 + adjustX, 50 - adjustY, 25 + adjustX, 40 - adjustY, 4);
+  // draw the leaves
+  color("light_green");
+  arc(20 + adjustX, 45 - adjustY, 5, 3, 0.95 - xx, 0);
+  arc(30 + adjustX, 80 - adjustY, 5, 5, 4.8 + xx);
+  arc(12 + adjustX, 90 - adjustY, 5, 3, 0.95 - xx, 0);
+  arc(12 + adjustX, 72 - adjustY, 3 + (5 * xx), 4, 5.5);
+
+  // create spawnpoints at the tip of each branch
+  // let spawnpointsLeft = [
+  //   vec(25 + adjustX, 35 - adjustY),
+  //   vec(28 + adjustX, 55 - adjustY),
+  //   vec(30 + adjustX, 80 - adjustY),
+  // ];
+
+  color("yellow");
+  spawnpoints.leftPoints.forEach(spawnpoint => {
+    char("a", spawnpoint.pos);
+  });
+}
 
 // ================================================== Helper Functions
 function getRandomColor()
@@ -253,6 +412,10 @@ function getRandomColor()
   color("black");
   let avColors = ["black", "red", "blue", "green", "yellow", "purple", "cyan"];
   return avColors[Math.floor(Math.random() * avColors.length)];
+}
+
+function lerp(start, end, amt) {
+  return (1 - amt) * start + amt * end;
 }
 
 /*
@@ -267,3 +430,54 @@ function getRandomColor()
   | "black"
   | "light_black"
   */
+
+
+
+  function spawnPointsRight(adjustX = 0, adjustY = 0){
+    let tSpawnpoints = [
+      vec(-(25 + adjustX), 35 - adjustY),
+      vec(-(28 + adjustX), 55 - adjustY),
+      vec(-(30 + adjustX), 80 - adjustY),
+    ];
+    return tSpawnpoints;
+  }
+
+  function spawnPointsLeft(adjustX = 0, adjustY = 0){
+    let tSpawnpoints = [
+      vec(25 + adjustX, 35 - adjustY),
+      vec(28 + adjustX, 55 - adjustY),
+      vec(30 + adjustX, 80 - adjustY),
+    ];
+    return tSpawnpoints;
+  }
+
+
+  function drawTreesXYmirror(adjustX = 0, adjustY = 0) {
+    let xx = Math.sin(ticks * 0.1) * 0.1;
+    color("light_yellow");
+    // draw the trunk
+    line(-(-2 + adjustX), 110 - adjustY, -(10 + adjustX), 30 - adjustY, 6);
+    // draw the branches
+    line(-(5 + adjustX), 90 - adjustY, -(40 + adjustX), 80 - adjustY, 4);
+    line(-(8 + adjustX), 70 - adjustY, -(30 + adjustX), 60 - adjustY, 4);
+    line(-(10 + adjustX), 50 - adjustY, -(25 + adjustX), 40 - adjustY, 4);
+    // draw the leaves
+    color("light_green");
+    arc(-(20 + adjustX), 45 - adjustY, 5, 3, 0.95 - xx, 0);
+    arc(-(30 + adjustX), 80 - adjustY, 5, 5, 4.8 + xx);
+    arc(-(12 + adjustX), 90 - adjustY, 5, 3, 0.95 - xx, 0);
+    arc(-(12 + adjustX), 72 - adjustY, 3 + (5 * xx), 4, 5.5);
+  
+    // create spawnpoints at the tip of each branch
+    // let spawnpointsLeft = [
+    //   vec(-(25 + adjustX), 35 - adjustY),
+    //   vec(-(28 + adjustX), 55 - adjustY),
+    //   vec(-(30 + adjustX), 80 - adjustY),
+    // ];
+    // // put char a at each spawnpoint
+    //let spawnpointLeft = spawnpoints.leftPoints;
+     color("red");
+     spawnpoints.rightPoints.forEach(spawnpoint => {
+       char("a", spawnpoint.pos);
+     });
+  }
