@@ -46,9 +46,9 @@ options = {
   theme: "crt",
   //    theme: "shapeDark",
   //  isShowingTime: true,
-  //  isCapturing: true,
-  //  captureCanvasScale: .2,
-  //  isCapturingGameCanvasOnly: true
+    isCapturing: true,
+    captureCanvasScale: .2,
+    isCapturingGameCanvasOnly: true
 };
 
 /*
