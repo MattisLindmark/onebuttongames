@@ -1,6 +1,6 @@
-title = "";
+title = "Cat Rescue";
 
-description = `
+description = ` Click to change direction\n Hold to slow down
 `;
 
 characters = [
@@ -33,7 +33,7 @@ lllll
 ];
 
 const G = {
-  WIDTH: 250,
+  WIDTH: 240,
   HEIGHT: 200,
 };
 
@@ -127,36 +127,67 @@ let orgCat = {
 let catPool = [];
 let lastCollission = 0;
 
-const GRAVITY = 0.1;
+// ==== div viktiga settings ================================================= SETTINGS STUFF
+const Base_GRAVITY = 0.1;
+let GRAVITY = Base_GRAVITY;
 
+const RNDRNG_Bounce = vec(.8, 1.2);
+
+let savedCats = 3;
+const maxSavedCats = 4;
+
+//====
 const WBS = { // WALL BOUNCE SETTINGS
   bouncheX: false,
   bouncheY: false,
   returnToPool: true,
 }
 
-let savedCats = 3;
-const maxSavedCats = 10;
 
 let wantedSpeed = 0;
-let dir = leveldata.plattaSpeed;
+let dir = 1;
 let clickTimer = 0;
+
+let LifeRemoveFX = false;
 // ================================================== Main Loop
 function update() {
   if (!ticks) {
+    sss.setVolume(0.05);
+    sss.setSeed(5);
+
+    leveldata = new LevelData(leveldata_org);
     setupCatPool();
     setupSpawpoints();
-    dir = leveldata.plattaSpeed;
+    playerPlatta.length = leveldata.plattaLength;
+    playerPlatta.speed = leveldata.plattaSpeed;
+    dir = 1;
+    GRAVITY = Base_GRAVITY;
+    LifeRemoveFX = false;
+    savedCats = 3;
   }
 
+  if (ticks < 2)
+  {
+    return;
+  }
+
+//  particle(20,20, 10, 2, 11, 1.4);
+  //  console.log("L-Speed: ", leveldata.plattaSpeed, "P-Speed:"+playerPlatta.speed);
   for (let i = 0; i < savedCats; i++) {
-  color("green");
-  char("a", 50+(15*i), 10, { scale: { x: 2, y: 2 } });
+    color("green");
+    char("a", 50 + (15 * i), 10, { scale: { x: 2, y: 2 } });
+    if (LifeRemoveFX && i === savedCats - 1) {
+      color("yellow");
+      particle(50 + (15 * (i + 1)), 10, 30);
+      LifeRemoveFX = false;
+      //    char("a", 50+(15*i), 10, { scale: { x: 2, y: 2 } });
+    }
   }
-
+  LifeRemoveFX = false;
+/* safe zone debugg
   rect(0, G.HEIGHT - 5, 5, 5);
   rect(G.WIDTH-5, G.HEIGHT - 5, 5, 5);
-
+*/
 
   if (input.isJustPressed) {
     //  if (clickTimer > 10) {
@@ -167,14 +198,14 @@ function update() {
 
   if (input.isPressed) {
     clickTimer++;
-    wantedSpeed = dir * 0.1;//leveldata.plattaSpeed;  
+    wantedSpeed = 0;//leveldata.plattaSpeed * 0.1;//leveldata.plattaSpeed;  
   }
   if (input.isJustReleased) {
      if (clickTimer < 15) {
        dir *= -1;
      }
     clickTimer = 0;
-    wantedSpeed = dir;
+    wantedSpeed = leveldata.plattaSpeed * dir;
   }
 
   playerPlatta.speed = lerp(playerPlatta.speed, wantedSpeed, 0.2);
@@ -182,10 +213,16 @@ function update() {
   drawTreesXY(TreeOffsetLeft.x, TreeOffsetLeft.y);
   drawTreesXYmirror(TreeOffsetRight.x, TreeOffsetRight.y);
 
-  handleSpawning();
+//  handleSpawning();
 
   movePlatta(playerPlatta);
   drawPlatta();
+
+  // light black rect for ground
+  color("light_black");
+  rect(0, G.HEIGHT - 2, G.WIDTH, 2);
+  color("black");
+
   /*
   color("green");
   let col = rect(playerPlatta.pos.x, playerPlatta.pos.y, playerPlatta.length, playerPlatta.thick);
@@ -208,14 +245,16 @@ function update() {
     }
   }
 
+  handleSpawning();
+
 /* Debuggtest for cats
   if (ticks % 120 === 0) {
     //    catPool.forEach(e => {if (e.bounceX) e.color = "light_blue";});
     let cat = catPool.find(e => !e.isActive);
     if (cat) {
       cat.isActive = true;
-//      cat.pos = vec(0, G.HEIGHT / 4);
-//      cat.vel = vec(0.1, -1);
+      cat.pos = vec(30, G.HEIGHT / 4);
+      cat.vel = vec(-0.1, -1);
     }
 
   }
@@ -278,11 +317,12 @@ function spawnCat(spawnpoint) {
   // random between -0.1 and 0.1
   //  let velY = (Math.random() - 0.5) * 0.2;
    // let velX = (Math.random() - 0.5 *0.4); // mellan -0.2 och 0.2
-   let velX = rnd(0.75,0.9);
+   let velX = rnd(RNDRNG_Bounce.x, RNDRNG_Bounce.y);//rnd(0.8,1);
    velX *= spawnpoint.direction;
 
-//  console.log("spawning cat at " + x + " " + y);
-  let cat = catPool.find(e => !e.isActive);
+// XXX IMPORTANT: Här sätts flera katt-värden vid spawn.
+
+  let cat = catPool.find(e => !e.isActive); 
   if (cat) {
     cat.pos = vec(x,y);
     cat.vel = vec(velX, rnd(1) - 2);
@@ -305,45 +345,94 @@ function drawCats() {
   }
 }
 
-function checkPlattaCollission(egg, collission) {
-  // rect(0,playerPlatta.pos.y,10,1);
-  if (egg.pos.y > playerPlatta.pos.y) { // && egg.pos.y < playerPlatta.pos.y+playerPlatta.thick+egg.vel.y) { // AIn verkar ha lagt till en koll för att undvika att ägget studsar flera ggr
-    if (egg.pos.x > playerPlatta.pos.x && egg.pos.x < playerPlatta.pos.x + playerPlatta.length) {
-      egg.bounceY = true;
-      egg.pos.y = playerPlatta.pos.y - 8;
+function checkPlattaCollission(cat, collission) {
+
+  if (collission.isColliding.rect.green) {
+    /*
+    if (lastCollission === 0) {
+      lastCollission = 1;
+    } else {
+      lastCollission = 0;
+    }
+    */
+    play("jump");
+    score++;
+    cat.bounceY = true;
+    cat.pos.y = playerPlatta.pos.y - 8;
+  }
+  /*
+  if (cat.pos.y > playerPlatta.pos.y) { // && egg.pos.y < playerPlatta.pos.y+playerPlatta.thick+egg.vel.y) { // AIn verkar ha lagt till en koll för att undvika att ägget studsar flera ggr
+    if (cat.pos.x > playerPlatta.pos.x && cat.pos.x < playerPlatta.pos.x + playerPlatta.length) {
+      cat.bounceY = true;
+      cat.pos.y = playerPlatta.pos.y - 8;
     }
   }
+  */
 }
-
+let tmp = -1;
 function smplCheckCatExitScreen(cat) {
   if (cat.pos.x < 5 || cat.pos.x > G.WIDTH-5) {
     play("coin");
-    score ++;
-    savedCats++;
-    if (savedCats > maxSavedCats) savedCats = maxSavedCats;
+    score +=2;
+    // savedCats++;
+    // if (savedCats > maxSavedCats) savedCats = maxSavedCats;
     leveldata.totalSavedCats++;
     levelUpCheck();
     resetCat(cat);
   }
   if (cat.pos.y > G.HEIGHT+20) {
-    play("explosion");
+    play("hit");
+    color("red");
+    particle(cat.pos.x,cat.pos.y-22,30,1.5, 11, 1.4);
+    //    rect(cat.pos.x-4,cat.pos.y-30,8,8);
+    if (savedCats > 0) { 
+      arc(cat.pos.x,cat.pos.y-30, 3, 3, 0, 3.14);
+    };
+    LifeRemoveFX = true;
     savedCats--;
     resetCat(cat);
   }
+ // tmp++;
+  if (savedCats < 0) {
+ //   leveldata.totalSavedCats = tmp;
+    let sc = leveldata.totalSavedCats;
+    let endStr = "Oh nooo! Cat-astrophe!";
+    if (sc > 0) endStr = "Every Cat Counts!";
+    if (sc > 1) endStr = "Feline Fine Job!";
+    if (sc > 10) endStr = "Cat-tastic! You are a Hero!";
+    if (sc > 20) endStr = "Pawsitively Purrr-fect!";
+    if (sc > 30) endStr = "Jesus Cat Superstar!";
+    if (sc > 40) endStr = "You are the Cat's Meow!";
+    if (sc > 60) endStr = "Optimus Prime salutes you.";
+    if (sc > 65) endStr = "I'm speechless!(Cat got my tongue)";
+    let c = getRandomColor();
+    color(c);
+    let xpos = G.WIDTH / 2 - (endStr.length * 3);
+    let xpos2 = G.WIDTH / 2 - 50;
+    text(endStr, xpos, 50);
+    if (sc === 1) text("you saved " + sc + " cat!", xpos2, 60);
+    else text("you saved " + leveldata.totalSavedCats+" cats!", xpos2, 60);
+    end("Game Over!");
+  }
+
 }
 
+// XXX viktig levelup settings
 function levelUpCheck() {
   if (leveldata.totalSavedCats % 2 === 0) {
-    play("powerUp");
-    leveldata.plattaSpeed += 0.5;
+    if (savedCats < maxSavedCats) play("powerUp");
+    savedCats++;
+    if (savedCats > maxSavedCats) savedCats = maxSavedCats;
+    leveldata.plattaSpeed += 0.05;
+    if (GRAVITY < .2) GRAVITY += 0.002;
     leveldata.spawnRate -= 30;
     if (leveldata.spawnRate < 60) leveldata.spawnRate = 60;
-    leveldata.plattaLength -= 5;
-    if (leveldata.plattaLength < 40) leveldata.plattaLength = 40;
+    leveldata.plattaLength -= 2;
+    if (leveldata.plattaLength < 30) leveldata.plattaLength = 30;
     leveldata.level++;
     //dir = leveldata.plattaSpeed;
     playerPlatta.length = leveldata.plattaLength;
-    playerPlatta.speed = leveldata.plattaSpeed;
+//    playerPlatta.speed = leveldata.plattaSpeed;
 //    catPool.forEach(e => { e.speed = leveldata.plattaSpeed; });
   }
 
@@ -380,16 +469,14 @@ function bounceCat(cat) {
   // Apply gravity
   cat.vel.y += GRAVITY;
 
-
   // Bounce off the edges
   if (cat.bounceX) {
     cat.vel.x *= -cat.bounce;
     cat.bounceX = false;
   }
   if (cat.bounceY) {
+//        cat.vel.y = -cat.vel.y * cat.bounce;//(Math.random() - 1) * 0.2;
     cat.vel.y *= -cat.bounce;
-    //egg.pos.y -= 5; // this one is replaced by setting new pos.y in collission check
-    //    egg.vel.y = -egg.vel.y * egg.bounce;//(Math.random() - 1) * 0.2;
     cat.bounceY = false;
   }
 }
@@ -411,9 +498,8 @@ function movePlatta(platta) {
 
 //================================================== Setup Functions
 function resetCat(cat) {
-  //  console.log("reset egg"+ egg.startPos.y);
   cat.isActive = false;
-  cat.pos = vec(cat.startPos.x, cat.startPos.y);
+  cat.pos = vec(cat.startPos.x, cat.startPos.y); // Eftertanke: egentligen hade vi kunnat placera ut startpositioner och klara oss delvis utan spawnpoints.
   cat.vel = vec(-1, rnd(2) - 1); 
   cat.bounceX = false;
   cat.bounceY = false;
@@ -421,6 +507,7 @@ function resetCat(cat) {
 }
 
 function setupCatPool() {
+  catPool = [];
   for (let i = 0; i < 10; i++) {
     let colstr = getRandomColor();
     let startPos = vec(rnd(G.WIDTH, G.WIDTH - 5), rnd(G.HEIGHT / 5));
@@ -446,7 +533,7 @@ function setupSpawpoints() {
   //   spawnpoints.rightPoints = spawnPointsRight(TreeOffsetRight.x, TreeOffsetRight.y);
   //   spawnpoints.instansiated = true;
   // }
-  if (!spawnpoints.instansiated) { // behövs snyggas till, onödigt att spawnpoints left och right genereras såhär...
+//  if (!spawnpoints.instansiated) { // behövs snyggas till, onödigt att spawnpoints left och right genereras såhär...
     spawnpoints.points =[];
     let tmpL = spawnPointsLeft(TreeOffsetLeft.x, TreeOffsetLeft.y);
     let tmpR = spawnPointsRight(TreeOffsetRight.x, TreeOffsetRight.y);
@@ -461,7 +548,8 @@ function setupSpawpoints() {
       //      spawnpoints.rightPoints[i].pos = tmp[i];
     }
     spawnpoints.instansiated = true;
-  }
+//  }
+//console.log("spawnpoints------------");
 
 }
 
