@@ -148,26 +148,39 @@ let wantedSpeed = 0;
 let dir = 1;
 let clickTimer = 0;
 
+let firstRun = true;
+let theEnd = false;
+
 let LifeRemoveFX = false;
 // ================================================== Main Loop
 function update() {
   if (!ticks) {
     sss.setVolume(0.05);
     sss.setSeed(5);
-
+    theEnd = false;
     leveldata = new LevelData(leveldata_org);
     setupCatPool();
     setupSpawpoints();
     playerPlatta.length = leveldata.plattaLength;
     playerPlatta.speed = leveldata.plattaSpeed;
+    playerPlatta.pos = vec(G.WIDTH/2-(leveldata.plattaLength/2), G.HEIGHT - 8);
     dir = 1;
     GRAVITY = Base_GRAVITY;
     LifeRemoveFX = false;
     savedCats = 3;
+    firstRun = true;
+  }
+  drawBGR();
+
+  if (ticks < 10)
+  {
+    firstRun = true;
+    clickTimer = 10000;
+    return;
   }
 
-  if (ticks < 2)
-  {
+  if (theEnd) {
+    endScreen();
     return;
   }
 
@@ -175,10 +188,10 @@ function update() {
   //  console.log("L-Speed: ", leveldata.plattaSpeed, "P-Speed:"+playerPlatta.speed);
   for (let i = 0; i < savedCats; i++) {
     color("green");
-    char("a", 50 + (15 * i), 10, { scale: { x: 2, y: 2 } });
+    char("a", 100 + (15 * i), 10, { scale: { x: 2, y: 2 } });
     if (LifeRemoveFX && i === savedCats - 1) {
       color("yellow");
-      particle(50 + (15 * (i + 1)), 10, 30);
+      particle(100 + (15 * (i + 1)), 10, 30);
       LifeRemoveFX = false;
       //    char("a", 50+(15*i), 10, { scale: { x: 2, y: 2 } });
     }
@@ -189,12 +202,10 @@ function update() {
   rect(G.WIDTH-5, G.HEIGHT - 5, 5, 5);
 */
 
-  if (input.isJustPressed) {
-    //  if (clickTimer > 10) {
-    //    dir *= -1;
-    //  }
+  if (input.isJustPressed && clickTimer !== 10000) { // 10000 is a magic number to avoid click on first frame
     clickTimer = 0;
   }
+  
 
   if (input.isPressed) {
     clickTimer++;
@@ -237,7 +248,8 @@ function update() {
     text("<", playerPlatta.pos.x + playerPlatta.length / 2, playerPlatta.pos.y + 3);//, {scale: {x:2, y:2}});
   }
 
-  if (ticks % leveldata.spawnRate === 0) {
+  if (ticks % leveldata.spawnRate === 0 || firstRun) {
+    firstRun = false;
     // find a random spawnPoint that is not ready and set it to ready
     let rnd = Math.floor(Math.random() * spawnpoints.points.length);
     if (!spawnpoints.points[rnd].ready) {
@@ -260,8 +272,82 @@ function update() {
   }
   */
 
+}
+
+function drawBGR() {
+  drawNightSky();
+//  drawHouseCity(-60,0,"light_purple");
+//  drawHouseCity(-20,20,"light_blue");
+//  drawHouseCity(50,-20,"light_blue");
+
+  //drawHouseCity(50);
+  //drawHouseCity(80);
+}
+
+function drawHouseCity(mod = 50,ymod = 0, c = "light_blue") {
+   let globalBGRCenterX = G.WIDTH / 2;
+    color(c);
+    rect(globalBGRCenterX+mod - 15, G.HEIGHT - 80-ymod, 40, 80+ymod);
+    color("purple");
+    rect(globalBGRCenterX+mod - 10, G.HEIGHT - 30, 5, 5);
+    rect(globalBGRCenterX+mod + 14, G.HEIGHT - 45, 5, 5);
+    rect(globalBGRCenterX+mod + 14, G.HEIGHT - 45, 5, 5);
+    rect(globalBGRCenterX+mod - 8, G.HEIGHT - 55, 5, 5);
+    rect(globalBGRCenterX+mod + 14, G.HEIGHT - 65, 5, 5);
+    rect(globalBGRCenterX+mod - 10, G.HEIGHT - 75, 5, 5);
+}
+
+let stars = [];
+let fxStar;
+
+function setupNightSky() {
+  stars = [];
+  // fill with 10 stars using times
+  times(20, () => {
+    stars.push({
+      pos: vec(rnd(20, G.WIDTH-20), rnd(5, G.HEIGHT/1.5)),
+//      speed: rnd(0.2, 0.5),
+      color: rnd(0, 2)>1 ? "light_yellow" : "light_cyan"
+    });
+  });
+
+  stars[0].color = "yellow";
+  stars[1].color = "black";
+  stars[2].color = "red";
+  
+  /* make one random star black
+  stars[rndi(0, stars.length)].color = "black";
+  // make one random star yellow
+  stars[rndi(0, stars.length)].color = "yellow";
+  */
+}
+
+function drawNightSky() {
+  if (stars.length === 0) setupNightSky();
+  stars.forEach((s) => {
+    color(s.color);
+    rect(s.pos, 1, 1);
+  });
+  color("black");
+
+  if (ticks % 70 >= 0 && ticks % 70 <= 50) {
+    if (ticks % 70 === 0) {
+    // select random star
+     fxStar = stars[rndi(0, stars.length)];
+     // random with 30% chance
+      if (rnd(0, 1) < 0.7) {
+        fxStar = null;
+      }
+    }
+    //console.log("t"+ticks % 60);
+    if (fxStar) {
+      color("black");
+      rect(fxStar.pos, 1, 1);   
+    }
+  }
 
 }
+
 
 //================================================== Main Functions
 
@@ -302,7 +388,6 @@ function handleSpawning() {
         color("black");
         char("a", sp.pos, { scale: { x: 2, y: 2 }, mirror: { x: mirrorX, y: 1 } });
       } else {
-        console.log("spawning");
         spawnCat(sp);
         sp.timer = 0;
         sp.ready = false;
@@ -390,31 +475,42 @@ function smplCheckCatExitScreen(cat) {
     };
     LifeRemoveFX = true;
     savedCats--;
+    if (savedCats < 0 && !theEnd) {
+      // trigger end() in 3 sec
+      theEnd = true;     
+      setTimeout(() => {
+        end();
+      }, 2000);
+    }
     resetCat(cat);
   }
  // tmp++;
-  if (savedCats < 0) {
- //   leveldata.totalSavedCats = tmp;
-    let sc = leveldata.totalSavedCats;
-    let endStr = "Oh nooo! Cat-astrophe!";
-    if (sc > 0) endStr = "Every Cat Counts!";
-    if (sc > 1) endStr = "Feline Fine Job!";
-    if (sc > 10) endStr = "Cat-tastic! You are a Hero!";
-    if (sc > 20) endStr = "Pawsitively Purrr-fect!";
-    if (sc > 30) endStr = "Jesus Cat Superstar!";
-    if (sc > 40) endStr = "You are the Cat's Meow!";
-    if (sc > 60) endStr = "Optimus Prime salutes you.";
-    if (sc > 65) endStr = "I'm speechless!(Cat got my tongue)";
-    let c = getRandomColor();
-    color(c);
-    let xpos = G.WIDTH / 2 - (endStr.length * 3);
-    let xpos2 = G.WIDTH / 2 - 50;
-    text(endStr, xpos, 50);
-    if (sc === 1) text("you saved " + sc + " cat!", xpos2, 60);
-    else text("you saved " + leveldata.totalSavedCats+" cats!", xpos2, 60);
-    end("Game Over!");
-  }
+}
 
+function endScreen() {
+  if (savedCats < 0) {
+    //   leveldata.totalSavedCats = tmp;
+       let sc = leveldata.totalSavedCats;
+       let endStr = "Oh nooo! Cat-astrophe!";
+       if (sc > 0) endStr = "Every Cat Counts!";
+       if (sc > 1) endStr = "Feline Fine Job!";
+       if (sc > 10) endStr = "Cat-tastic! You are a Hero!";
+       if (sc > 20) endStr = "Pawsitively Purrr-fect!";
+       if (sc > 30) endStr = "Jesus Cat Superstar!";
+       if (sc > 40) endStr = "You are the Cat's Meow!";
+       if (sc > 60) endStr = "Optimus Prime salutes you.";
+       if (sc > 65) endStr = "I'm speechless!(Cat got my tongue)";
+       let c = getRandomColor();
+       color(c);
+       let xpos = G.WIDTH / 2 - (endStr.length * 3);
+       let xpos2 = G.WIDTH / 2 - 50;
+       text(endStr, xpos, 50);
+       if (sc === 1) text("you saved " + sc + " cat!", xpos2, 60);
+       else text("you saved " + leveldata.totalSavedCats+" cats!", xpos2, 60);
+   
+       
+       //end("Game Over!");
+     }   
 }
 
 // XXX viktig levelup settings
