@@ -8,8 +8,10 @@ characters = [
 l
 `,
 `
-llllll
-llllll
+ yyy
+yyyyy
+lllll
+yyyyy
 `  
 ];
 
@@ -44,7 +46,7 @@ rope.pointSpacing = rope.length / rope.pointCount;
 rope.pointMass = 1;
 rope.gravity = 0.05;
 rope.stiffness = 0.1;
-rope.damping = 0.91;
+rope.damping = 0.85; // 0.91
 rope.wind = 0.5;
 rope.tension = 0.5;
 rope.friction = 0.5;
@@ -55,8 +57,16 @@ let force = 4;
 let directionVector = [vec(2, 0), vec(-2, 0), vec(0, 1), vec(0, -2)];
 let currentDirection = directionVector[0];
 let index = 0;
+
+let food = {
+  pos: vec(G.WIDTH / 2, G.HEIGHT / 2),
+  isActive: true
+};
+
 function update() {
   if (!ticks) {
+    // set food position to random on screen
+    food.pos = vec(rnd(10, G.WIDTH - 10), rnd(10, G.HEIGHT - 10));
     rope.points = [];
     for (let i = 0; i < rope.pointCount; i++) {
       let point = {
@@ -86,11 +96,11 @@ function update() {
   // }
 
 
-  if (input.isJustPressed) {
+  if (input.isJustReleased) {
     currentDirection = GLOBALDIRECTION;
   }
 
-  if (input.isPressed) {
+  if (!input.isPressed) {
     applyForce(currentDirection);//vec(-force,1));
   }
 //  if (input.isJustReleased) {    
@@ -109,6 +119,7 @@ function update() {
   applyConstraints();
   updateRope();
   drawRope();
+  drawFood();
 
 
 //  let x = sin(ticks * .12) * 10;
@@ -118,9 +129,29 @@ function update() {
   text("pl: " + rope.points.length, 3, 3);
 }
 
+function drawFood() {
+  if (!food.isActive)
+  { 
+
+    food.pos = vec(rnd(10, G.WIDTH - 10), rnd(10, G.HEIGHT - 10));
+    food.isActive = true;
+    return;
+  }
+
+    color("black");
+  let col = char("b", food.pos);
+  // check if player is colliding with food // kan ej kollidera med line.
+  if (col.isColliding.char.a) {
+    rope.points.push({pos: vec(food.pos.x, food.pos.y), prevPos: vec(food.pos.x, food.pos.y)});
+    food.isActive = false;
+  }
+}
+
+
 let GLOBALDIRECTION = vec(0, 0);
 let radius = 5;
 let angle = 0;
+let tmp = 1;
 function directionMarker() {
 
   let x = rope.points[rope.points.length - 1].pos.x;
@@ -128,8 +159,14 @@ function directionMarker() {
 
   let xx = x + radius * Math.cos(angle);
   let yy = y + radius * Math.sin(angle);
-  if (!input.isPressed) {
-    angle += 0.1;
+  if (input.isPressed) {
+    angle += 0.1*tmp;
+    // if (angle > Math.PI) {
+    //   tmp = -1;
+    // }
+    // if (angle < 0) {
+    //   tmp = 1;
+    // }
   }
 
   // global direction should be set to the direction of the last point to the marker position, that is xx,yy
@@ -156,6 +193,7 @@ function applayGravity() {
   //rope.points[rope.points.length - 1].pos.x += rope.wind;
 
 /*   Apply tension force to the last point
+
   let tension = vec(rope.points[rope.points.length - 1].pos.x - rope.points[rope.points.length - 2].pos.x, rope.points[rope.points.length - 1].pos.y - rope.points[rope.points.length - 2].pos.y);
   let length = Math.sqrt(tension.x * tension.x + tension.y * tension.y);
   tension.x = tension.x / length;
@@ -179,8 +217,7 @@ function applayGravity() {
   friction.y *= rope.friction;
   rope.points[rope.points.length - 1].pos.x -= friction.x;
   rope.points[rope.points.length - 1].pos.y -= friction.y;
-
-
+  
   // Apply drag force to the last point
   let drag = vec(rope.points[rope.points.length - 1].pos.x - rope.points[rope.points.length - 2].pos.x, rope.points[rope.points.length - 1].pos.y - rope.points[rope.points.length - 2].pos.y);
   length = Math.sqrt(drag.x * drag.x + drag.y * drag.y);
@@ -190,8 +227,9 @@ function applayGravity() {
   drag.y *= rope.drag;
   rope.points[rope.points.length - 1].pos.x -= drag.x;
   rope.points[rope.points.length - 1].pos.y -= drag.y;
-*/
-
+  
+  */
+  
 
 }
 
@@ -243,8 +281,11 @@ function applyForce(force) {
       y: force.y + pulsingForceMod
   */
 
-  rope.points[rope.points.length - 1].pos.x += modifiedForce.x;
-  rope.points[rope.points.length - 1].pos.y += modifiedForce.y;
+      // XXXXXXXX force to last or first point? Spelar det nån roll?
+//  rope.points[rope.points.length - 1].pos.x += modifiedForce.x;
+//  rope.points[rope.points.length - 1].pos.y += modifiedForce.y;
+  rope.points[0].pos.x += modifiedForce.x;
+  rope.points[0].pos.y += modifiedForce.y;
 
 /*
   for (let i = 0; i < rope.points.length; i++) {
