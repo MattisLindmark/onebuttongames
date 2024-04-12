@@ -68,7 +68,13 @@
         "title": "Cat Rescue",
         "folderName": "catrescue",
         "description": "Rescue the cats from the trees and bring them to safety! A game of skill and precision!"
+      },
+      {
+        "title": "DJBH-Ninja",
+        "folderName": "djbhninja",
+        "description": "Ninja Hungry, needs burgers. Eat or die! A game of skill and precision!"
       }
+
 
 
     ]

@@ -67,10 +67,12 @@ const G = {
 options = {
   viewSize: { x: G.WIDTH, y: G.HEIGHT },
   theme: "simple",
-  isCapturing: true,
-  captureCanvasScale: 2,
-  isCapturingGameCanvasOnly: true
-};
+  isReplayEnabled: true,
+//  isPlayingBgm: true,
+//   isCapturing: true,
+//   captureCanvasScale: 2,
+//   isCapturingGameCanvasOnly: true
+ };
 
 const GroundLevel = G.HEIGHT - 10;
 
@@ -135,6 +137,8 @@ bigBurger.char = "c";
 deathCloud.char = "g";
 smallCloud.char = "h";
 
+let BBinArow = 0;
+
 let steps = G.WIDTH / 10;
 
 // TODO:
@@ -150,32 +154,55 @@ let steps = G.WIDTH / 10;
 
 
 
+const notelist = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"];
+//const notelist = ["c", "d", "e", "f", "g", "a", "b"];
 
-
-
+function calcNote(number = 0) {
+  // return melody[number % melody.length];
+ 
+   let note = notelist[number % notelist.length];
+   let octave = Math.floor(number / notelist.length);
+   octave += 4;
+   return "" + note + octave;
+ }
 
 let animOffsett = 0;
 
-
+let tmp = 0;
 function update() {
-  if (!ticks) {    
-    sss.setVolume(0.01);
+  if (!ticks) {
+    // if (!isReplaying) {
+    //   console.log("Would be nice if set volume worked...");      
+    // }
+    sss.setVolume(0.02);
+    sss.setSeed(4); 
     // airCounter = 0;
     // airTimer = 0;
     // groundTimer = 0;
     // HUNGER = 100;
     // AChighscore = 0;
+    // for (let i = 0; i < 20; i++) {
+    //   console.log(""+rndi(1, 5));
 
+    // }
     resetSomeStuff();
-
     setupPools();
   }
-  
-  // // for loop of 10
-  // for (let i = 0; i < 10; i++) {
-  //   color("light_black");
-  //   text ("|",i*steps, 40);
-  // }
+
+/*
+  // Audio debugg
+  if (ticks % 60 === 0) {
+    sss.setSeed(4);
+    tmp++
+//    play("powerUp", { volume: 0.5});
+//    play("jump", { volume: 0.5});
+    let n = calcNote(tmp*2);
+//    play("coin", {note: n, volume: 0.2});
+    play("coin", {seed:78, volume: 0.3}); //78 // select 10 22 23
+  }
+  text("seed: " + tmp, 3, 3);
+  return;
+  */
 
 
   animOffsett = ticks % 20 > 10 ? 1 : 0;
@@ -223,7 +250,7 @@ function update() {
   enemies.forEach((e) => {
     e.pos.x -= e.speed;
     if (e.pos.x < 0) {
-      e.pos.y = rnd(5, middleZone);
+      e.pos.y = rnd(highZone, middleZone);
       e.pos.x = 100;
     }
     char("d", e.pos, { rotation: starRotation });
@@ -280,10 +307,16 @@ function update() {
 
   if (ticks % 180 === 0) {
      item = rndi(0, 2)? deathCloud : bigBurger; // 33% chans för moln?
+     if (BBinArow > 3) item = deathCloud;
      if (!item.isActive) {     
        item.isActive = true;
        item.pos.x = G.WIDTH + 5;
-       item.pos.y = rnd(3, 8);        
+       item.pos.y = rnd(3, 8);
+       if (item == bigBurger) {
+        BBinArow++;
+       } else {
+        BBinArow = 0;
+       }
       }
   }
 //MARK: - Clouds XXXXXXXXXXXXXXXXXXX
@@ -291,7 +324,6 @@ function update() {
     let r = rnd(0,10);
     console.log(r);
     if (r>5 && !smallCloud.isActive){
-      console.log("Spawn small cloud");
       smallCloud.isActive = true;
       smallCloud.pos.x = G.WIDTH + 5;
       smallCloud.pos.y = rndi(1,7)*10;//rnd(10, 16);
@@ -348,7 +380,9 @@ function update() {
   
   if (airTimer > airTimerMax) {
     airCounter++;
-    play("powerUp");
+//    play("powerUp", {volume: 0.3});
+    let n = calcNote(airCounter*2);
+    play("coin", {note: n, volume: 0.2});
     color("purple");
     particle(4,25);
 //    text(""+airCounter*2, 10, 25);
@@ -433,7 +467,10 @@ function drawJumpBar() {
       color("light_blue");
     }
     rect(i * sectionWidth, G.HEIGHT - 6, sectionWidth, 2);
+    color("light_black");
+    text("|", i * sectionWidth, G.HEIGHT - 5)
   }
+    text("|", G.WIDTH-1, G.HEIGHT - 5)
 //  let jumpBarWidth = (jumps / maxJumps) * G.WIDTH;
 //  rect(0, G.HEIGHT - 6, jumpBarWidth, 2);
 }
@@ -442,16 +479,16 @@ function drawAirTime() {
 
   if (airTimer < 1) {
     color ("light_blue");
-    rect(1,26, 5, 21);
+    rect(1,26, 4, 21);
     color("black");
     return;
   }
 
   let airTimerBarHeight = (airTimer / airTimerMax) * 20;
   color ("purple");
-  rect(1,26, 5, 21);
+  rect(1,26, 4, 21);
   color("light_cyan");
-  rect (2, 46, 3, airTimerBarHeight*-1);
+  rect (2, 46, 2, airTimerBarHeight*-1);
   color("black");
     
 }
@@ -467,9 +504,11 @@ function drawFood(f) {
     if (fcol.isColliding.char.a || fcol.isColliding.char.b) {
       particle(f.pos);
       f.pos.x = -120;
-      play("coin");
+//      play("select", {note: "c5",volume: 0.3, seed: 5});
+//play("coin", {seed:78, volume: 0.3});
+      play("coin", {seed: 78, volume: 0.3});
 //      player.health++;
-      plForce += .5;
+      //plForce += .5; <- blir nog bäst utan detta.
       if (!player.isHit) jumps++;
       score++;
       if (HUNGER < 30){HUNGER += 5;}
@@ -497,12 +536,13 @@ function moveAndDrawItems() {
     if (col.isColliding.char.a || col.isColliding.char.b) {
       particle(bigBurger.pos);
       bigBurger.isActive = false;
-      player.health += 2;
+      //player.health += 2;
       //plForce += 1;
       jumps = maxJumps;
       score += 4;
       HUNGER += 40;
-      play("powerUp");
+      play("jump", { volume: 0.5});
+//      play("powerUp");
     }
   }
 
@@ -575,7 +615,7 @@ function spawnSamurai() {
     return;
   }
   samurai.isActive = true;
-  samurai.pos.x = G.WIDTH + rndi(1, 3) * steps;
+  samurai.pos.x = G.WIDTH + rndi(1, 5) * steps;
 }
 
 function playerMovement() {
