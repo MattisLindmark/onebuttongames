@@ -209,9 +209,18 @@ function update() {
   
   if (ticks % 15 === 0) {
     HUNGER -= difficulty;
-    if (HUNGER < 0) {
-      end();
-    }
+    // if (HUNGER < 0) { // NOTE: DayTwo patch flyttat ut dödskollen.
+
+    //   if (player.grounded) {
+    //     end();
+    //   } else {
+    //     HUNGER = -1;
+    //   }
+    // }
+  }
+
+  if (HUNGER < 0 && player.grounded) {
+    end();
   }
 
   if (ticks % 5 === 0) {
@@ -235,6 +244,7 @@ function update() {
   let hungerBarWidth = (HUNGER / 100) * G.WIDTH;
   color("black");
   if (HUNGER < 35) color("red");
+  if (HUNGER < 0) color("yellow");
   rect(0, G.HEIGHT - 3, hungerBarWidth, 2);
   char("c",hungerBarWidth, G.HEIGHT - 2);//, {scale: {x: .5, y: .5}});
   
@@ -388,6 +398,9 @@ function update() {
 //    text(""+airCounter*2, 10, 25);
     score += 2*airCounter;
     airTimer = 0;
+    if (airCounter > 2 && jumps < 2) { // NOTE: DayTwo patch
+      jumps++;
+    }
   }
   if (airCounter > 0) {
     color ("blue")
