@@ -21,10 +21,12 @@ llllll
 const G = {
   WIDTH: 200,
   HEIGHT: 300,
+  REALWIDTH: 230,
+  REALHEIGHT: 300
 };
 
 options = {
-  viewSize: { x: G.WIDTH, y: G.HEIGHT },
+  viewSize: { x: G.REALWIDTH, y: G.REALHEIGHT },
   //isPlayingBgm: true,
   isReplayEnabled: true,
   //  seed: 1,
@@ -35,6 +37,39 @@ options = {
   //  captureCanvasScale: .2,
   //  isCapturingGameCanvasOnly: true
 };
+const phrases = [
+  "Pick me",
+  "Choose me",
+  "You seek",
+  "Take me",
+  "Select me",
+  "I'm here",
+  "Your turn",
+  "Join me",
+  "Grab me",
+  "Vote me",
+  "Tag me",
+  "I'm ready",
+  "Pick first",
+  "Me next",
+  "Claim me",
+  "I volunteer",
+  "My chance",
+  "I'm available",
+  "Your choice",
+  "I'm up",
+  "I'm the one",
+  "correct\nchoice",
+  "Wrong\nanswer",
+  "Not this\none",
+  "Bad choice",
+  "Good\nchoice"
+];
+
+let rndPhrases = [];
+let phrasesIndex = 0;
+
+console.log(phrases);
 
 const colors = ["red", "blue", "green", "yellow", "purple", "cyan", "black"];
 const allColors = ["red", "blue", "green", "yellow", "purple", "cyan", "black", "light_red", "light_blue", "light_green", "light_yellow", "light_purple", "light_cyan", "light_black"];
@@ -60,10 +95,11 @@ let selectIndex = 0;
 let timer = 0;
 function update() {
   if (!ticks) {    
-    nrOfCards = 2; 
+    nrOfCards = 1; 
 //    sss.setSeed(5);
 //    sss.setVolume(0.05);
     setCardSize();
+    setupAnswerPhrases();
   selectIndex = 0;
   }
 
@@ -98,22 +134,38 @@ function stageSelect(){
 
 function stageResult(){
   timer++;
-  if (timer < 60) {
+  if (timer < 30) {
     drawItems();
     drawSelection(true);
     return;
   }
-       
+  
+  if (timer < 70) {
+    drawSelection(true);
+    drawItems(false,true);
+    return;
+  }
+  if (timer < 250) {
+    drawSelection(true);
+    drawItems(true,false);
+    return;
+  }
+
+
+  drawItems(true);
+  drawSelection(true);
+
   if (randomItems[selectIndex].isTheOne) {
     play("coin");
     color("green");
-    text("You win!", G.WIDTH / 2, G.HEIGHT / 2);
+    text("You win!", G.WIDTH / 2-16, G.HEIGHT / 2);
   } else {
     play("explosion");
     color("red");
-    text("You lose!", G.WIDTH / 2, G.HEIGHT / 2);
+    text("You lose!", G.WIDTH / 2-16, G.HEIGHT / 2);
   }
-  if (timer > 120) {
+
+  if (timer > 130) {
     selectIndex = 0;
     nrOfCards++;
     setCardSize();
@@ -126,7 +178,7 @@ function drawSelection(isResult = false) {
   let item = randomItems[selectIndex];
   color("black");
   if (isResult) {    
-    color(allColors[rndi(0, allColors.length)]);
+    color("black"); //allColors[rndi(0, allColors.length)]);
   }  
   rect(item.pos.x-cardSize/2-2, item.pos.y-cardSize/2-2, cardSize*item.sizeMod+4, cardSize*item.sizeMod+4);
   color("black");
@@ -135,12 +187,13 @@ function drawSelection(isResult = false) {
 
 function createItems (ammount = 1) {
   randomItems = [];
-  for (let i = 0; i < ammount; i++) {
+  for (let i = 0; i < ammount; i++) {    
     let pos = vec(0,0);
     let color = allColors[rndi(0, allColors.length)];
     let sizeMod = rnd(.8,1.3);
-    let description = "this is a description";
-    let lable = "this is a lable";
+    let description = "this is the correct one.";
+    let lable = rndPhrases[phrasesIndex];
+    phrasesIndex = wrap(phrasesIndex + 1, 0, rndPhrases.length);
     let isTheOne = false;
     randomItems.push(new selectableItem(pos, color, sizeMod, description, lable, isTheOne));
   }
@@ -156,7 +209,24 @@ function createItems (ammount = 1) {
 function setCardSize() {
   let tmp1 = Math.ceil(G.HEIGHT / nrOfCards - 2);
   let tmp2 = Math.ceil(G.WIDTH / nrOfCards - 2);
+  
   cardSize = tmp1 > tmp2 ? tmp1 : tmp2;
+
+  cardSize = Math.min(cardSize,50);
+
+}
+
+function setupAnswerPhrases() {
+  rndPhrases = [];
+  phrasesIndex = 0;
+  phrases.forEach(phrase => {
+    rndPhrases.push(phrase);
+  });
+  shuffle(rndPhrases);  
+}
+
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
 }
 
 function generateGridPositions(amount) {
@@ -190,22 +260,49 @@ function generateGridPositions(amount) {
 
 
 
-function drawItems() {
+function drawItems(showTheOne = false, dimTheLights = false) {
   randomItems.forEach(item => {
-    let txt = "pick me!";
-    if (item.isTheOne) { txt = "the one"};
+    let ccardSize = cardSize;
+    let txt = item.lable;
+        if (item.isTheOne) { txt = "the one"};
     color(item.color);
-//    rect(item.pos.x, item.pos.y, cardSize * item.sizeMod, 10 * item.sizeMod);
-    rect(item.pos.x-cardSize/2, item.pos.y-cardSize/2, cardSize*item.sizeMod, cardSize*item.sizeMod);
+    //    rect(item.pos.x, item.pos.y, cardSize * item.sizeMod, 10 * item.sizeMod);
 
-    let bottomLeftX = item.pos.x - cardSize / 2;
-    let bottomLeftY = item.pos.y - cardSize / 2 + cardSize * item.sizeMod;
+    if (showTheOne && item.isTheOne) {
+     
+      color(allColors[rndi(0, allColors.length)]);
+      ccardSize += Math.cos(ticks * 0.1) * 5;
+    } else if (showTheOne && !item.isTheOne){      
+      color ("light_cyan");
+      if (randomItems[selectIndex] == item) {
+        color("green");
+      }
+    }
 
-    let bottomLeftCorner = vec(bottomLeftX+5, bottomLeftY+4);
+    if (dimTheLights && !showTheOne) {
+      color("light_cyan");
+      if (randomItems[selectIndex] == item) {
+        color("green");
+      }
+    }
 
-    color("black");
-    text(txt, bottomLeftCorner, {color: "black"});
-//    text("x", bottomLeftCorner);
+    rect(item.pos.x - ccardSize / 2, item.pos.y - ccardSize / 2, ccardSize * item.sizeMod, ccardSize * item.sizeMod);
+    
+    if (!showTheOne && !dimTheLights) {
+      let bottomLeftX = item.pos.x - cardSize / 2;
+      let bottomLeftY = item.pos.y - cardSize / 2 + cardSize * item.sizeMod;
+      //    let bottomLeftCorner = vec(bottomLeftX+((txt.length*6)-(cardSize/2)), bottomLeftY+4);
+
+      let bottomLeftCorner = vec(bottomLeftX, bottomLeftY + 4);
+      //    console.log("hej" +(txt.length*20)/(cardSize/2));
+
+      color("black");
+      text(txt, bottomLeftCorner, { color: "black" });
+    } else if (item.isTheOne && !dimTheLights) {
+      color("black");
+      text("The\none!", item.pos.x-15, item.pos.y,{scale: {x: 2, y: 2}});
+    }
+    //    text("x", bottomLeftCorner);
   });
 }
 
