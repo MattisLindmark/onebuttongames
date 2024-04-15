@@ -90,21 +90,80 @@ class selectableItem {
 
 let randomItems = [];
 let currentStage = testStage;
+let extraLife = 0;
 
 let selectIndex = 0;
 let timer = 0;
+let bonusFX = false;
+let FXposY = 5;
+let FXspeed = 0.05;
+
+let totalGuesses = 0;
+
+const CHEATMODE = false;
+
+// MARK: - Main loop
 function update() {
-  if (!ticks) {    
-    nrOfCards = 1; 
+  if (!ticks) {
+    totalGuesses = 0;
+    extraLife = 0;
+    nrOfCards = 1;
+    timer = 0;
+    bonusFX = false;
+    FXposY = 5;
+    FXspeed = 0.05;
 //    sss.setSeed(5);
 //    sss.setVolume(0.05);
     setCardSize();
     setupAnswerPhrases();
   selectIndex = 0;
   }
+  color("black");
+  //bonusFX = true;
+
+  if (extraLife < 0 && currentStage != endStage) {
+    timer = 0;
+    currentStage = endStage;
+    extraLife = 0;
+    bonusFX = false;
+  }
 
   currentStage();
+  
+  
+  color("black");
+  text("Bonus Luck: " + extraLife, G.REALWIDTH/2-50, 5);
+  if (bonusFX) {
+    let tmp = extraLife+1;
+    color("red");
+    text(""+tmp,G.REALWIDTH/2+23,FXposY);
+    color("black");
+    FXposY += FXspeed;
+    FXspeed += 0.05;
+    if (FXposY > G.HEIGHT) {
+      bonusFX = false;
+      FXposY = 5;
+      FXspeed = 0.05;
+    }
+  }
 
+}
+
+function endStage() {
+  timer ++;
+  console.log(""+timer);
+  color("transparent");
+  rect(0,0,G.WIDTH,G.HEIGHT);
+  color("red");
+  text("You ran out of luck!", G.WIDTH / 2 - 20, G.HEIGHT / 3);
+  text("Score:" + score, G.WIDTH / 2 - 20, G.HEIGHT / 3 + 10);
+  text("Total guesses:" + totalGuesses, G.WIDTH / 2 - 20, G.HEIGHT / 3 + 20);
+  text("Reached level: " + nrOfCards, G.WIDTH / 2 - 20, G.HEIGHT / 3 + 30);
+  if (timer > 60) {
+    extraLife = 0;
+    currentStage = testStage;
+    end();
+  }
 }
 
 function testStage() {
@@ -132,20 +191,23 @@ function stageSelect(){
   }
 }
 
+let soundFlag = false;
 function stageResult(){
+  let isCorrect = randomItems[selectIndex].isTheOne;
   timer++;
   if (timer < 30) {
+    soundFlag = false;
     drawItems();
     drawSelection(true);
     return;
   }
   
-  if (timer < 70) {
+  if (timer < 90) {
     drawSelection(true);
     drawItems(false,true);
     return;
   }
-  if (timer < 250) {
+  if (timer < 150) {
     drawSelection(true);
     drawItems(true,false);
     return;
@@ -154,20 +216,38 @@ function stageResult(){
 
   drawItems(true);
   drawSelection(true);
-
-  if (randomItems[selectIndex].isTheOne) {
-    play("coin");
-    color("green");
-    text("You win!", G.WIDTH / 2-16, G.HEIGHT / 2);
+  // rectange behind the text
+  
+  let playstr = "explosion";
+  if (isCorrect) {
+    color("light_green");
+    rect(0, G.HEIGHT / 2 - 10, G.WIDTH, 20);
+    playstr ="powerUp";
+    color("black");
+    text("CORRECT!", G.WIDTH / 2-20, G.HEIGHT / 2);
   } else {
-    play("explosion");
-    color("red");
-    text("You lose!", G.WIDTH / 2-16, G.HEIGHT / 2);
+    color("light_red");
+    rect(0, G.HEIGHT / 2 - 10, G.WIDTH, 20);
+    playstr = "explosion";
+    color("black");
+    text("No luck!", G.WIDTH / 2-20, G.HEIGHT / 2);
   }
 
-  if (timer > 130) {
+  if (!soundFlag) {
+    play(playstr);
+    soundFlag = true;
+  }
+
+
+  if (timer > 210) {
     selectIndex = 0;
-    nrOfCards++;
+    isCorrect ? nrOfCards++ : nrOfCards+=0;
+    isCorrect ? extraLife++ : extraLife--;
+    isCorrect ? score++ : score+=0;
+    totalGuesses++;
+    if (!isCorrect && !bonusFX) {
+      bonusFX = true;      
+    }
     setCardSize();
     currentStage = stageOne;
   }
@@ -264,7 +344,7 @@ function drawItems(showTheOne = false, dimTheLights = false) {
   randomItems.forEach(item => {
     let ccardSize = cardSize;
     let txt = item.lable;
-        if (item.isTheOne) { txt = "the one"};
+        if (item.isTheOne && CHEATMODE) { txt = "the one"};
     color(item.color);
     //    rect(item.pos.x, item.pos.y, cardSize * item.sizeMod, 10 * item.sizeMod);
 
@@ -273,14 +353,14 @@ function drawItems(showTheOne = false, dimTheLights = false) {
       color(allColors[rndi(0, allColors.length)]);
       ccardSize += Math.cos(ticks * 0.1) * 5;
     } else if (showTheOne && !item.isTheOne){      
-      color ("light_cyan");
+      color ("light_blue");
       if (randomItems[selectIndex] == item) {
         color("green");
       }
     }
 
     if (dimTheLights && !showTheOne) {
-      color("light_cyan");
+      color("light_blue");
       if (randomItems[selectIndex] == item) {
         color("green");
       }
