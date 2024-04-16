@@ -1,6 +1,6 @@
-title = "";
+title = "Fortune Frenzy";
 
-description = `
+description = `Do you feel lucky?
 `;
 
 characters = [
@@ -28,7 +28,7 @@ const G = {
 options = {
   viewSize: { x: G.REALWIDTH, y: G.REALHEIGHT },
   //isPlayingBgm: true,
-  isReplayEnabled: true,
+  // isReplayEnabled: true,
   //  seed: 1,
   //  isShowingScore: false,
     theme: "shapeDark",
@@ -187,6 +187,7 @@ function stageSelect(){
   drawItems();
   if (input.isJustPressed) {
     timer = 0;
+    play("select");
     currentStage = stageResult;
   }
 }
@@ -221,16 +222,16 @@ function stageResult(){
   let playstr = "explosion";
   if (isCorrect) {
     color("light_green");
-    rect(0, G.HEIGHT / 2 - 10, G.WIDTH, 20);
+    rect(0, G.HEIGHT / 2 - 10, G.REALWIDTH, 20);
     playstr ="powerUp";
     color("black");
-    text("CORRECT!", G.WIDTH / 2-20, G.HEIGHT / 2);
+    text("CORRECT!", G.REALWIDTH / 2-20, G.HEIGHT / 2);
   } else {
     color("light_red");
-    rect(0, G.HEIGHT / 2 - 10, G.WIDTH, 20);
+    rect(0, G.HEIGHT / 2 - 10, G.REALWIDTH, 20);
     playstr = "explosion";
     color("black");
-    text("No luck!", G.WIDTH / 2-20, G.HEIGHT / 2);
+    text("No luck!", G.REALWIDTH / 2-20, G.HEIGHT / 2);
   }
 
   if (!soundFlag) {
@@ -366,23 +367,28 @@ function drawItems(showTheOne = false, dimTheLights = false) {
       }
     }
 
-    rect(item.pos.x - ccardSize / 2, item.pos.y - ccardSize / 2, ccardSize * item.sizeMod, ccardSize * item.sizeMod);
+    rect(item.pos.x - (ccardSize / 2), item.pos.y - (ccardSize / 2), ccardSize * item.sizeMod, ccardSize * item.sizeMod);   
     
     if (!showTheOne && !dimTheLights) {
       let bottomLeftX = item.pos.x - cardSize / 2;
       let bottomLeftY = item.pos.y - cardSize / 2 + cardSize * item.sizeMod;
       //    let bottomLeftCorner = vec(bottomLeftX+((txt.length*6)-(cardSize/2)), bottomLeftY+4);
-
-      let bottomLeftCorner = vec(bottomLeftX, bottomLeftY + 4);
+      
+      let bottomLeftCorner = vec(bottomLeftX, bottomLeftY + 8);
       //    console.log("hej" +(txt.length*20)/(cardSize/2));
-
+      
       color("black");
       text(txt, bottomLeftCorner, { color: "black" });
     } else if (item.isTheOne && !dimTheLights) {
       color("black");
-      text("The\none!", item.pos.x-15, item.pos.y,{scale: {x: 2, y: 2}});
+      text("The  \none", item.pos.x - (ccardSize/2)+((ccardSize*item.sizeMod) / 2)-12, item.pos.y-ccardSize/4 ,{scale: {x: 2, y: 2}}); // för y: - (ccardSize*item.sizeMod)/2
+//      text("The  \none!", (item.pos.x- cardSize/2)+5, item.pos.y-2,{scale: {x: 2, y: 2}});
     }
-    //    text("x", bottomLeftCorner);
+
+//     color ("black");
+//     text("The  \none", item.pos.x - (ccardSize/2)+((ccardSize*item.sizeMod) / 2)-12, item.pos.y-ccardSize/4 ,{scale: {x: 2, y: 2}}); // för y: - (ccardSize*item.sizeMod)/2
+
+//    text("The  \none!", (item.pos.x- cardSize/2)+10, item.pos.y-(cardSize/4),{scale: {x: 2, y: 2}});
   });
 }
 
