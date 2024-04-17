@@ -33,9 +33,9 @@ options = {
   //  isShowingScore: false,
     theme: "shapeDark",
   //  isShowingTime: true,
-    isCapturing: true,
-    captureCanvasScale: .2,
-    isCapturingGameCanvasOnly: true
+//    isCapturing: true,
+  //  captureCanvasScale: .2,
+  //  isCapturingGameCanvasOnly: true
 };
 const phrases = [
   "Pick me",
@@ -319,14 +319,19 @@ function stageResult(){
   }
 }
 
-
+// MARK: draw selection
 function drawSelection(isResult = false) {
   let item = randomItems[selectIndex];
-  color("black");
+  //color("black");
+  let colr = "yellow";//colors[rndi(0, colors.length)];
+  color(colr);
   if (isResult) {    
     color("black"); //allColors[rndi(0, allColors.length)]);
   }  
   rect(item.pos.x-cardSize/2-2, item.pos.y-cardSize/2-2, cardSize*item.sizeMod+4, cardSize*item.sizeMod+4);
+  colr = "black";
+  text(">", item.pos.x-cardSize/2-10, item.pos.y, {scale: {x: 2, y: 2}, color: colr});
+  text("<", item.pos.x-cardSize/2+cardSize*item.sizeMod+8, item.pos.y, {scale: {x: 2, y: 2}, color: colr});
   color("black");
 }
 
