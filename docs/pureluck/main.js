@@ -1,4 +1,4 @@
-title = "Fortune Frenzy";
+title = "Pure Luck";
 
 description = `Do you feel lucky?
 `;
@@ -33,9 +33,9 @@ options = {
   //  isShowingScore: false,
     theme: "shapeDark",
   //  isShowingTime: true,
-  //  isCapturing: true,
-  //  captureCanvasScale: .2,
-  //  isCapturingGameCanvasOnly: true
+    isCapturing: true,
+    captureCanvasScale: .2,
+    isCapturingGameCanvasOnly: true
 };
 const phrases = [
   "Pick me",
@@ -65,6 +65,65 @@ const phrases = [
   "Bad choice",
   "Good\nchoice"
 ];
+
+const luckyPhrases = [ // OBS: Både lucky och unlucky phrases ska vara lika långa. 26 st just nu.
+  "Bingo!",
+  "Nailed it!",
+  "Spot on!",
+  "Perfect!",
+  "Winner!",
+  "Got it!",
+  "Exactly!",
+  "Bravo!",
+  "Well done!",
+  "You're right!",
+  "Precisely!",
+  "Excellent!",
+  "That's it!",
+  "On the money!",
+  "Absolutely!",
+  "Hooray!",
+  "Incredible!",
+  "Just right!",
+  "Gold star!",
+  "Luck favors you!",
+  "CORRECT!",
+  "Right answer!",
+  "That was the one!",
+  "You got it!",
+  "Impressive!",
+  "Pro guesser!"
+];
+
+const unluckyPhrases = [
+  "Wrong!",
+  "Not quite.",
+  "Missed it!",
+  "Not even close!",
+  "Try again!",
+  "Hard luck.",
+  "Better luck next time.",
+  "Wrong path.",
+  "No dice.",
+  "Unlucky.",
+  "Not the one.",
+  "Back to the drawing board.",
+  "Swing and a miss.",
+  "Fate frowns.",
+  "Off target.",
+  "No jackpot.",
+  "Bad call.",
+  "Lost in the shuffle.",
+  "Missed the mark.",
+  "Luck eludes you.",
+  "No luck!",
+  "Nope.",
+  "Git Gud Noob!",
+  "Incorrect.",
+  "Seriously?",
+  "Pick better next time."
+];
+
 
 let rndPhrases = [];
 let phrasesIndex = 0;
@@ -151,7 +210,7 @@ function update() {
 
 function endStage() {
   timer ++;
-  console.log(""+timer);
+//  console.log(""+timer);
   color("transparent");
   rect(0,0,G.WIDTH,G.HEIGHT);
   color("red");
@@ -193,6 +252,8 @@ function stageSelect(){
 }
 
 let soundFlag = false;
+let endTextIndex = -1;
+
 function stageResult(){
   let isCorrect = randomItems[selectIndex].isTheOne;
   timer++;
@@ -214,24 +275,27 @@ function stageResult(){
     return;
   }
 
+  if (endTextIndex < 0) {
+    endTextIndex = rndi(0,26);
+  }
 
   drawItems(true);
   drawSelection(true);
   // rectange behind the text
-  
+  // MARK: Result stage stuff.
   let playstr = "explosion";
   if (isCorrect) {
     color("light_green");
     rect(0, G.HEIGHT / 2 - 10, G.REALWIDTH, 20);
     playstr ="powerUp";
     color("black");
-    text("CORRECT!", G.REALWIDTH / 2-20, G.HEIGHT / 2);
+    text(luckyPhrases[endTextIndex], G.REALWIDTH / 2-luckyPhrases[endTextIndex].length*3, G.HEIGHT / 2);
   } else {
     color("light_red");
     rect(0, G.HEIGHT / 2 - 10, G.REALWIDTH, 20);
     playstr = "explosion";
     color("black");
-    text("No luck!", G.REALWIDTH / 2-20, G.HEIGHT / 2);
+    text(unluckyPhrases[endTextIndex], G.REALWIDTH / 2-unluckyPhrases[endTextIndex].length*3, G.HEIGHT / 2);
   }
 
   if (!soundFlag) {
@@ -241,6 +305,7 @@ function stageResult(){
 
 
   if (timer > 210) {
+    endTextIndex = -1;
     selectIndex = 0;
     isCorrect ? nrOfCards++ : nrOfCards+=0;
     isCorrect ? extraLife++ : extraLife--;
