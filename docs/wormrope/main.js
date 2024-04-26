@@ -1,6 +1,6 @@
-title = "";
+title = "WormRope";
 
-description = `
+description = `Eat burgers\nAvoid bees and birds
 `;
 
 characters = [
@@ -15,24 +15,52 @@ yyyyy
 `,
   `
   ll
+ lyyl
+llllll
+ lyyl
+  ll
+`,`
+    l
+ l ll
+ylllll
+
+
+`,
+`
+
+ l
+ylllll
+   ll
+    l
+`,  `
+  ll
  llll  
 lYllYl
  llll
   ll
+  ll
+`,
+  `
+  ll
+ yyyy
+ llll
+ lyyl
   ll
 `
 
 ];
 
 const G = {
-  WIDTH: 210,
-  HEIGHT: 190,
+//  WIDTH: 210,
+//  HEIGHT: 190,
+  WIDTH: 160,
+  HEIGHT: 140,
 };
 
 options = {
   viewSize: { x: G.WIDTH, y: G.HEIGHT },
   //isPlayingBgm: true,
-  isReplayEnabled: true,
+  //isReplayEnabled: true,
   //  seed: 1,
   //  isShowingScore: false,
   theme: "shape",
@@ -67,36 +95,96 @@ let directionVector = [vec(2, 0), vec(-2, 0), vec(0, 1), vec(0, -2)];
 let currentDirection = directionVector[2];
 let index = 0;
 
+
+
 let food = {
   pos: vec(G.WIDTH / 2, G.HEIGHT / 2),
   isActive: true
 };
 
-let poison = {
-  pos: vec(G.WIDTH / 2, G.HEIGHT / 2),
-  isActive: true
-};
+// let poison = {
+//   pos: vec(G.WIDTH / 2, G.HEIGHT / 2),
+//   isActive: true
+// };
 
-let poinsons = [];
+let bees = [];
 
-let numberOfPoins = 10;
+class Bird {
+  constructor() {
+    this.pos = vec(0,0);
+    this.direction = 1;
+    this.speed = rnd(0.2, 0.7);
+    this.char = "d";
+    this.isActive = false;
+    this.randomness = rnd(0.1, 1);
+  }  
+}
+let levelStartData = {
+  birdAmmount: 2,
+  beesAmmount: 2,
+  speedMod : 1,
+}
+let currentSpeedMod = levelStartData.speedMod;
 
+let birds = [];
 
+let removedPoints = [];
+let removedPointsTimer = 0;
+let safe = false;
+let totalNumberOfBurgers = 0;
+let longestRope = 0;
+
+let theEnd = false;
+let endTimer = 0;
+let endMessage = "Out of rope...";
+//MARK: - Main
 function update() {
   if (!ticks) {
-    let currentDirection = directionVector[2];
-    generatePoison();
+
+//    sss.setVolume(0.5);
+    sss.setVolume(0.2);
+    sss.setSeed(4); 
+    theEnd = false;
+    endMessage = "Out of rope...";
+    endTimer = 0;
+    totalNumberOfBurgers = 0;   
+    currentSpeedMod = levelStartData.speedMod;
+    currentDirection = directionVector[2];
+    GLOBALDIRECTION = vec(0, 0);
+    angle = 1.5;
+    tmp = 1;
+    GLOBALDIRECTION = directionVector[2];
+    //currentDirection = GLOBALDIRECTION
+    setupBees();
+//    console.log("bees: " + bees.length);
+    setupBirds();
     // set food position to random on screen
     food.pos = vec(rnd(10, G.WIDTH - 10), rnd(10, G.HEIGHT - 10));
     rope.points = [];
     for (let i = 0; i < rope.pointCount; i++) {
       let point = {
-        pos: vec(G.WIDTH / 2, i * rope.pointSpacing),
-        prevPos: vec(G.WIDTH / 2, i * rope.pointSpacing),
+        pos: vec((G.WIDTH / 2)+i, i * rope.pointSpacing),
+        prevPos: vec((G.WIDTH / 2)-i, i * rope.pointSpacing),
         //        pmass: rope.pointMass-i*0.1,
       };
       rope.points.push(point);
+
+      longestRope = rope.points.length;
     }
+  }
+
+  if (theEnd) {
+    color("blue");
+    text(endMessage, 50, G.HEIGHT / 2-20);
+    text("Score: " + score, 50, G.HEIGHT / 2-10)
+    text("Longest Worm: " + longestRope, 30, G.HEIGHT / 2 + 10);
+    text("Total Burgers: " + totalNumberOfBurgers,30, G.HEIGHT / 2 + 20);    
+    endTimer++;
+    if (endTimer > 100) {
+      end();
+    }
+    color("black");
+    return;
   }
   // if (input.isJustPressed) {
   //   rope.points = [];
@@ -109,16 +197,19 @@ function update() {
   //   }
   // }
 
-  text("cdir: " + currentDirection.x + " " + currentDirection.y, 3, 10);
-  // if (ticks % 100 === 0) {
-  //   index++;
-  //   currentDirection = directionVector[index % directionVector.length];
-  //   currentDirection.normalize();
+ 
+  //text("length: " + rope.points.length, G.WIDTH/2-30, 3);
+
+   if (ticks % 800 === 0 && totalNumberOfBurgers > 0) {
+      play("laser");
+      addOneBee();
+      birds.push(new Bird());
+      currentSpeedMod += 0.1;
+   }
+
+
+  // if (input.isJustReleased) {
   // }
-
-
-  if (input.isJustReleased) {
-  }
 
   applyForce(currentDirection);//vec(-force,1));
   if (input.isPressed) {
@@ -135,18 +226,46 @@ function update() {
   // Constraint the first point to the top center of the screen
   //applayGravity();
 
-  directionMarker();
+  if (rope.points.length < 2) {
 
+    text("Game Over", G.WIDTH / 2, G.HEIGHT / 2);
+    //end();
+  }
+
+  safe = removedPointsTimer > 10 ? true : false;
+
+  
   applyConstraints();
-  applayGravity();
+  //applayGravity();
   updateRope();
   drawFood();
-  drawPoison();
+  drawBees();
+  drawBirds();
+  directionMarker();
   drawRope();
 
-
+  if (removedPoints.length > 0 && removedPointsTimer > 0) {
+    removedPointsTimer --;
+    // just draw the points
+    for (let i = 0; i < removedPoints.length - 1; i++) {
+      let point1 = removedPoints[i];
+      let point2 = removedPoints[i + 1];
+      let clr = removedPointsTimer > 30 ? "red" : "light_red";
+      color(clr);
+      line(point1.pos, point2.pos, 1);
+    }
+  }
+//MARK: BURGER COLLISION
   if (burgerCol) {
+    totalNumberOfBurgers++;
     rope.points.push({ pos: vec(food.pos.x, food.pos.y), prevPos: vec(food.pos.x, food.pos.y) });
+    if (rope.points.length > longestRope) {
+      longestRope = rope.points.length;
+    }
+    play("coin");
+    let scoreCalculation = Math.floor(rope.points.length/2);
+    addScore(scoreCalculation, food.pos);
+    particle(food.pos,10,1);
     food.isActive = false;
     burgerCol = false;
   }
@@ -155,29 +274,55 @@ function update() {
   //  let y = cos(ticks * .12) * 5;
   //  rope.points[0].pos = vec(x+50, y+50);
 
-  text("pl: " + rope.points.length, 3, 3);
+ // text("pl: " + rope.points.length, 3, 3);
 }
 
-function drawPoison() {
-
-  for (let i = 0; i < poinsons.length; i++) {
-    if (!poinsons[i].isActive) {
-
-      poinsons[i].pos = getRandomPositionOutsideScreen(); //  vec(rnd(0, G.WIDTH *-1), rnd(10, G.HEIGHT - 10));
-      poinsons[i].direction = vec(rnd(-1, 1), rnd(-1, 1));
-      poinsons[i].speed = rnd(.2, 1);
-      adjustOnePoisonDirection(poinsons[i]);
-      poinsons[i].isActive = true;
+//MARK: - Draw
+function drawBirds() {
+  let offset = ticks % 60 > 30 ? 1 : 0;
+  birds.forEach(b => {
+    if (!b.isActive) {
+      b.pos = getRandomPositionLeftRight();
+      b.isActive = true;
+      if (b.pos.x < 0) {
+        b.direction = 1;
+      } else {
+        b.direction = -1;
+      }
     }
 
-    poinsons[i].pos.x += poinsons[i].direction.x; // poinsons[i].speed;
-    poinsons[i].pos.y += poinsons[i].direction.y; // poinsons[i].speed;
+    b.pos.x += b.speed * b.direction;
+    b.pos.y = b.pos.y + sin(ticks * 0.1) * (b.randomness * 0.5);
+    color("black");
+    char(addWithCharCode(b.char, offset), b.pos, { scale: { x: 2, y: 2 }, mirror: { x: b.direction * -1, y: 1 } });
+
+     if (b.pos.x > G.WIDTH + 50 || b.pos.x < -50) {
+       b.isActive = false;
+     }
+  });
+}
+
+
+function drawBees() {
+
+  for (let i = 0; i < bees.length; i++) {
+    if (!bees[i].isActive) {
+
+      bees[i].pos = getRandomPositionOutsideScreen(); //  vec(rnd(0, G.WIDTH *-1), rnd(10, G.HEIGHT - 10));
+      bees[i].direction = vec(rnd(-1, 1), rnd(-1, 1));
+      bees[i].speed = rnd(.2, 1);
+      adjustOnePoisonDirection(bees[i]);
+      bees[i].isActive = true;
+    }
+
+    bees[i].pos.x += bees[i].direction.x; // poinsons[i].speed;
+    bees[i].pos.y += bees[i].direction.y; // poinsons[i].speed;
 
     color("black");
-    char("c", poinsons[i].pos);
+    char("c", bees[i].pos);
 
-    if (poinsons[i].pos.x > G.WIDTH + 10 || poinsons[i].pos.x < -10 || poinsons[i].pos.y > G.HEIGHT + 10 || poinsons[i].pos.y < -10) {
-      poinsons[i].isActive = false;
+    if (bees[i].pos.x > G.WIDTH + 10 || bees[i].pos.x < -10 || bees[i].pos.y > G.HEIGHT + 10 || bees[i].pos.y < -10) {
+      bees[i].isActive = false;
     }
   }
 
@@ -193,22 +338,7 @@ function drawPoison() {
 
 }
 
-function generatePoison() {
-  poinsons = [];
-  for (let i = 0; i < 10; i++) {
-    poinsons.push({
-      pos: vec(rnd(10, G.WIDTH - 10), rnd(10, G.HEIGHT - 10)),
-      direction: vec(rnd(-1, 1), rnd(-1, 1)),
-      speed: rnd(.2, 1),
-      isActive: true
-    });
-  }
-  poinsons.forEach(p => {
-    p.pos = getRandomPositionOutsideScreen();
-    adjustOnePoisonDirection(p);
-  });
 
-}
 
 function adjustOnePoisonDirection(p) {
   p.direction.normalize();
@@ -228,7 +358,7 @@ function adjustOnePoisonDirection(p) {
 }
 
 function AdjustPoisonDirection() {
-  poinsons.forEach(p => {
+  bees.forEach(p => {
     p.direction.normalize();
     p.direction.mul(p.speed);
     if (p.pos.x > G.WIDTH && p.direction.x > 0) {
@@ -248,22 +378,23 @@ function AdjustPoisonDirection() {
 
 function drawFood() {
   if (!food.isActive) {
-    food.pos = vec(rnd(10, G.WIDTH - 10), rnd(10, G.HEIGHT - 10));
+    food.pos = vec(rnd(20, G.WIDTH - 20), rnd(20, G.HEIGHT - 20));
     food.isActive = true;
     return;
   }
 
   color("black");
   let col = char("b", food.pos);
-  // check if player is colliding with food // kan ej kollidera med line.
+  /* check if player is colliding with food // kan ej kollidera med line.
   if (col.isColliding.char.a) {
     rope.points.push({ pos: vec(food.pos.x, food.pos.y), prevPos: vec(food.pos.x, food.pos.y) });
     food.isActive = false;
   }
+  */
 }
 
 
-let GLOBALDIRECTION = vec(0, 0);
+let GLOBALDIRECTION = vec(0,0);
 let radius = 5;
 let angle = 1.5;
 let tmp = 1;
@@ -283,7 +414,7 @@ function directionMarker() {
   // let x = rope.points[rope.points.length - 1].pos.x;
   // let y = rope.points[rope.points.length - 1].pos.y;
 
-  // Lets see what happens if we use the last point as the center of the circle instead of the first point.
+  // XXX dir alternatives Lets see what happens if we use the last point as the center of the circle instead of the first point.
   let x = rope.points[0].pos.x;
   let y = rope.points[0].pos.y;
 
@@ -304,10 +435,31 @@ function directionMarker() {
   GLOBALDIRECTION = vec(xx - x, yy - y);
   GLOBALDIRECTION.normalize();
 
+  let damp = rope.points.length > 3 ? 1 : 0.5; // Some magic number to make the rope slower when short
+  GLOBALDIRECTION.x *= damp;
+  GLOBALDIRECTION.y *= damp;
+
   //char("c", xx, yy,{rotation: angle});
   color("green");
-  line(x, y, xx, yy, 2);
+  let col = line(x, y, xx, yy, 2); // dras i fel ordning, kan ej kolla kollision med line.
+  //bar(G.WIDTH/2-3,G.HEIGHT, 4, 4, angle*-1, 1);
   color("black");
+
+  if (x > G.WIDTH+25 || x < -25 || y > G.HEIGHT +25 || y < -25) {
+    theEnd = true;
+    endMessage = "Out of bounds...";
+    play("explosion");
+  }
+
+   if (col.isColliding.char.c || col.isColliding.char.d || col.isColliding.char.e) {
+     theEnd = true;
+     endMessage = "Head got eaten...";
+     play("explosion");
+   }
+
+   if (col.isColliding.char.b) {
+     burgerCol = true;
+   }
 
 }
 
@@ -463,7 +615,9 @@ function applyForce(force) {
     */
 }
 
+
 let burgerCol = false;
+
 function drawRope() {
   let RemoveFrom = -1;
   for (let i = 0; i < rope.points.length - 1; i++) {
@@ -478,20 +632,82 @@ function drawRope() {
     if (col.isColliding.char.b) {
       burgerCol = true;
     }
-    if (col.isColliding.char.c) {
+    if (col.isColliding.char.c || col.isColliding.char.d || col.isColliding.char.e) {
       RemoveFrom = i;
-      poison.isActive = false;
+      particle(rope.points[i].pos, 10, 1);
+      play("hit");
+      //poison.isActive = false;
       break;
     }
   }
-
-  if (RemoveFrom > -1) {
-    if (RemoveFrom < rope.points.length - 1)
-      rope.points.splice(RemoveFrom, rope.points.length - RemoveFrom);
+  // if (safe) {
+  //   RemoveFrom = -1;
+  // }
+  if (RemoveFrom > 1) {
+    if (RemoveFrom < rope.points.length - 1) {
+      removedPoints =rope.points.splice(RemoveFrom, rope.points.length - RemoveFrom);
+      removedPointsTimer = 60;
+    }
+  } else if (RemoveFrom == 0) {
+    theEnd = true;
+    play("explosion");
+    //end(); // MARK: END IS HERE END IS HERE
   }
 
 }
 
+
+// MARK: - Setup
+function setupBees() {
+  bees = [];
+  for (let i = 0; i < levelStartData.beesAmmount; i++) {
+    addOneBee();
+  }
+  // bees.forEach(p => {
+  //   p.pos = getRandomPositionOutsideScreen();
+  //   adjustOnePoisonDirection(p);
+  // });
+}
+
+function setupBirds() {
+  birds = [];
+  for (let i = 0; i < levelStartData.birdAmmount; i++) {
+    birds.push(new Bird());
+  }
+
+  birds.forEach(b => {
+    b.isActive = true;
+    b.pos = getRandomPositionLeftRight();
+    if (b.pos.x < 0) {
+      b.direction = 1;
+    } else {
+      b.direction = -1;
+    }
+  });
+}
+
+function addOneBee() {
+  let bee = {
+    pos: vec(0,0),//vec(rnd(0, G.WIDTH), rnd(0, G.HEIGHT)),
+    direction: vec(rnd(-1, 1), rnd(-1, 1)),
+    speed: rnd(.2, 1),
+    isActive: true
+  };
+
+  bee.pos = getRandomPositionOutsideScreen();
+  adjustOnePoisonDirection(bee);
+
+  bees.push(bee);
+  /*
+      bees.push({
+      pos: vec(rnd(10, G.WIDTH - 10), rnd(10, G.HEIGHT - 10)),
+      direction: vec(rnd(-1, 1), rnd(-1, 1)),
+      speed: rnd(.2, 1),
+      isActive: true
+    });
+  */
+  
+}
 
 function getRandomPositionOutsideScreen() {
   let side = Math.floor(Math.random() * 4);
@@ -508,6 +724,21 @@ function getRandomPositionOutsideScreen() {
       pos = vec(-rnd(10, G.WIDTH), rnd(0, G.HEIGHT));
       break;
     case 3: // Right
+      pos = vec(G.WIDTH + rnd(10, G.WIDTH), rnd(0, G.HEIGHT));
+      break;
+  }
+  return pos;
+}
+
+function getRandomPositionLeftRight() {
+  let side = Math.floor(Math.random() * 2);
+  let pos;
+
+  switch (side) {
+    case 0: // Left
+      pos = vec(-rnd(10, G.WIDTH), rnd(0, G.HEIGHT));
+      break;
+    case 1: // Right
       pos = vec(G.WIDTH + rnd(10, G.WIDTH), rnd(0, G.HEIGHT));
       break;
   }
