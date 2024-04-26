@@ -140,6 +140,8 @@ let endMessage = "Out of rope...";
 //MARK: - Main
 function update() {
   if (!ticks) {
+    removedPointsTimer =0;
+
 
 //    sss.setVolume(0.5);
     sss.setVolume(0.2);
@@ -232,7 +234,7 @@ function update() {
     //end();
   }
 
-  safe = removedPointsTimer > 10 ? true : false;
+  //safe = removedPointsTimer > 10 ? true : false;
 
   
   applyConstraints();
