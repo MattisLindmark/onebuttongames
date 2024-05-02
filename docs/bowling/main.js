@@ -50,7 +50,8 @@ options = {
   //isReplayEnabled: true,
   //  seed: 1,
   //  isShowingScore: false,
-    theme: "shapeDark",
+    //theme: "shapeDark",
+    theme: "simple",
   //  isShowingTime: true,
   //  isCapturing: true,
   //  captureCanvasScale: .2,
@@ -168,7 +169,7 @@ class bowlingBall {
       this.vel.add(this.acc);
       this.acc.set(0, 0);
 
-      if (this.pos.x < GutterLeft || this.pos.x > GutterRight) {
+      if (this.pos.x < GutterLeft-3 || this.pos.x > GutterRight+3) {
         if ( CHEATMODE){
           this.vel.x *= -1;
         }else{
@@ -176,8 +177,10 @@ class bowlingBall {
         }
         if (this.pos.y > 5)
         {
+          if (!Gutterflag) {
+            play("explosion");
+          }
           Gutterflag = true;
-          //play("explosion");
         }
       }
 
@@ -186,7 +189,7 @@ class bowlingBall {
         this.isLaunched = false;
         FinishTurn = true;
 
-        if (this.pos.x < GutterLeft || this.pos.x > GutterRight) {
+        if (this.pos.x < GutterLeft-3 || this.pos.x > GutterRight+3) {
           if (Gutterflag){
             gameStats.totalGutterBalls++;
             Gutterflag = false;
@@ -296,7 +299,8 @@ color ("light_black");
   color("black");
   
 
-  color("light_red");
+//  color("light_red");
+  color("red");
   rect(GutterLeft-10, 0, 10, G.HEIGHT);
   rect(GutterRight, 0,10, G.HEIGHT);
 

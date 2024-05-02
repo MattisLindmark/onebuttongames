@@ -83,9 +83,11 @@
         "title": "WormRope",
         "folderName": "wormrope",
         "description": "Devour burgers, dodge birds, and outwit bees in this retro 8-bit action game featuring a worm made of old rope."
-      }
-
-
-
+      },
+      {
+        "title": "SimpleBowling",
+        "folderName": "bowling",
+        "description": "Bowling is a sport in which players attempt to score points by rolling a bowling ball along a flat surface into pins."
+      }      
     ]
   }
