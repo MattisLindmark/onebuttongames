@@ -1,0 +1,85 @@
+title = "";
+
+description = `
+`;
+
+characters = [
+`
+llllll
+llllll
+llllll
+llllll
+llllll
+llllll
+`,
+`
+llllll
+llllll
+`  
+];
+
+const G = {
+  WIDTH: 110,
+  HEIGHT: 90,
+};
+
+const worldPhysics = {
+  gravity: 1,
+  friction: 0.9,
+  jump: -2,
+  maxSpeed: 5,
+};
+
+options = {
+  viewSize: { x: G.WIDTH, y: G.HEIGHT },
+  //isPlayingBgm: true,
+  isReplayEnabled: true,
+  //  seed: 1,
+  //  isShowingScore: false,
+  //  theme: "crt",
+  //  isShowingTime: true,
+  //  isCapturing: true,
+  //  captureCanvasScale: .2,
+  //  isCapturingGameCanvasOnly: true
+};
+
+//======== Classes
+class player {
+  constructor() {
+    this.pos = vec(G.WIDTH * 0.5, G.HEIGHT * 0.5);
+    this.speed = 0;
+    this.jump = 0;
+    this.jumpforce = .1;
+    this.char = "a";
+    
+  }
+
+  update() {
+    this.pos.x += this.speed;
+    this.pos.x = clamp(this.pos.x, 0, G.WIDTH);
+    this.speed *= 0.9;
+    this.pos.y += this.jump;
+    this.jump += this.jumpforce;
+    this.jumpforce += worldPhysics.gravity;
+    this.jumpforce = clamp(this.jumpforce,-2, 2);
+    this.jump = clamp(this.jump,worldPhysics.gravity*-1, worldPhysics.gravity);
+  }
+}
+
+let santa = new player();
+
+//MARK: ======== Main Loop
+function update() {
+  if (!ticks) {
+//    sss.setSeed(5);
+//    sss.setVolume(0.05);
+  }
+  santa.update();
+  if (input.isJustPressed) {
+    //santa.jump = worldPhysics.jump;
+    santa.jumpforce = -18;
+  }
+  color("black");  
+  char(santa.char, santa.pos);
+  
+}
