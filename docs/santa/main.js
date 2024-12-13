@@ -1,3 +1,4 @@
+
 title = "";
 
 description = `
@@ -91,6 +92,21 @@ GGGGGG
 `
 ];
 
+const musicMML = `
+t120 l8 o4 cdefgab>c
+`;
+const jingelBells = `
+@coin@s648125671 t120 o5 l8 e e l4 e l8 e e l4 e l8 e g c d e2 f f f f f e e e e d d e d2
+l8 e e l4 e l8 e e l4 e l8 e g c d e2 f f f f f e e e g g f d c2
+`;
+
+const wishXmus = `
+@coin@s848125671 t150v23<g>cl8cdc<bl4aaa>dl8dedcl4<bgg>el8efedc4<a4ggl4a>dc-c2<g>cl8cdc<bl4aaa>dl8dedcl4<bgg>el8efedc4<a4ggl4a>dc-c2<g>ccc<b2bb+bag2>dedcg<gg8g8a>dc-c2<g>cl8cdc<bl4aaa>dl8dedcl4<bgg>el8efedc4<a4ggl4a>dc-c2`;
+const jingelBells_gudars = `
+@coin@s848125671 t120 o5 f f f f f e e e g g f d c2
+`;
+//t120 o4 l8 e e e l4 e l8 e e e l4 e l8 e g c d e2 f f f f f e e e e d d e d g2
+
 
 const G = {
   WIDTH: 200, // 110
@@ -106,6 +122,7 @@ const worldPhysics = {
   jump: -2,
   maxSpeed: .5,
   worldSpeed: 1,
+  cloudSteps: 15,
 };
 
 const offsets = {
@@ -150,7 +167,7 @@ options = {
 class player {
   constructor() {
     this.pos = vec(G.WIDTH * 0.2, G.HEIGHT * 0.5);
-    this.speed = 0;
+    //this.speed = 0;
     this.jump = 0;
     this.jumpforce = .2;
     this.jumpPower = -.5;
@@ -159,16 +176,16 @@ class player {
   }
   reset() {
     this.pos = vec(G.WIDTH * 0.2, G.HEIGHT * 0.5);
-    this.speed = 0;
+    //this.speed = 0;
     this.jump = 0;
   }
 
   update() {
-    this.pos.x += this.speed;
-    this.speed *= 0.9;
+    //this.pos.x += this.speed;
+    //this.speed *= 0.9;
     this.jumpforce += worldPhysics.gravity;
     this.jumpforce *= 0.1;
-    this.jumpforce = clamp(this.jumpforce,-2, 2);
+    this.jumpforce = clamp(this.jumpforce,-3, 3);
     this.jump += this.jumpforce;
     this.jump = clamp(this.jump,worldPhysics.maxSpeed*-1, worldPhysics.maxSpeed);
     this.pos.y += this.jump;
@@ -209,7 +226,7 @@ class present {
     // this should fall down
     this.fallspeed += .1;
     //    this.fallspeed *= 0.9;
-    this.fallspeed = clamp(this.fallspeed, -2.5, 2);
+    this.fallspeed = clamp(this.fallspeed, -2.5, 5);
     this.pos.y += this.fallspeed;
 
     var col = char(this.char, this.pos);
@@ -405,32 +422,36 @@ class house {
   constructor() {
     this.pos = vec(0,0);
     this.isactive = false;
-    this.myPosX = 0;
+//    this.myPosX = 0;
     this.GotAPresent = false;
+    this.xMod = 0;
   }
   
   activate() {
     this.isactive = true;
-    this.pos = vec(G.WIDTH, G.HEIGHT - 20);
+    this.pos = vec(G.WIDTH+this.xMod, G.HEIGHT - 20);
     this.GotAPresent = false;
   }
 
   update() {
     if (!this.isactive) {
-      this.pos = vec(G.WIDTH+30, G.HEIGHT - 20);
-      this.isactive = true;
-      this.GotAPresent = false;
+      this.activate();
+      this.pos = vec(G.WIDTH+rnd(30,50), G.HEIGHT - 20); // this is so that the houses keep their distance
+      // this.pos = vec(G.WIDTH+30, G.HEIGHT - 20);
+      // this.isactive = true;
+      // this.GotAPresent = false;
       return;
     }
     this.pos.x -= 0.4*currentWorldSpeed;
     if (this.pos.x < -30) {
       this.isactive = false;
       if (!this.GotAPresent) {
-        play("explosion");
+        play("hit");
         HappinessMeeter -= 5;
       }
     }
     DrawFarmHouse(this.pos.x, this);
+    color("black");
   }
 }
 
@@ -528,8 +549,14 @@ let santa = new player();
 let btnTimer = 0;
 let btnTreshold = 10;
 let theHouse = new house();
+let Houses = [];
+// create 5 houses in the array
+for (let i = 0; i < 3; i++) {
+  Houses.push(new house());
+}
+
 let testTrack = [];
-for (let i = 0; i < 15; i++)
+for (let i = 0; i < 5; i++) // Ordinarie mängd 15
   {
     testTrack.push(new cloud());
     //clouds.push(new cloud());
@@ -549,9 +576,17 @@ let presentCOLdetected = false;
 let TEMPGUBBE = new GiftReciver();
 
 
+let GlobalHouseOfsett = 0;
 
 function update() {
   if (!ticks) {
+    //    sss.playMml("t120 l8 o4 cdefgab>c");
+    var mmlStr = rnd() > 0.5 ? jingelBells : wishXmus;
+    sss.playMml([mmlStr]);
+    for (let i = 0; i <Houses.length; i++) {
+      Houses[i].xMod = i*80;
+    }
+    GlobalHouseOfsett = Houses.length*80;
     ResetStuff();
     SantaIsDetected = true;
     presentCOLdetected = false;
@@ -563,9 +598,8 @@ function update() {
     let i = 0;
     testTrack.forEach(cloud => {
       i++;
-      cloud.activate(i*15);      
+      cloud.activate(i * worldPhysics.cloudSteps);
     });
-
 
     GIFTRECIVER.Activate();
 
@@ -642,15 +676,10 @@ function update() {
   // }
 
   let GiftCOL = GIFTRECIVER.update();
-  /*
-  if (GiftCOL != null && (GiftCOL.isColliding.char.e || GiftCOL.isColliding.char.f)) {
-    play("powerUp");
-    HappinessMeeter += 10;
-    score += 10;
-  }
-*/
+
     updatePresents();
-    theHouse.update();
+    Houses.forEach(h => h.update());
+//    theHouse.update();
 
   //======================================= HandleMeeters
   // SantaDetectionMeeter
@@ -662,29 +691,29 @@ function update() {
   if (SantaIsDetected) {
     SantaDetectionMeeter += 0.1*(difficulty/2);
   } else {
-    SantaDetectionMeeter -= 0.02;
+    SantaDetectionMeeter -= 0.1;
   }  
   if (SantaDetectionMeeter > 100) {
     //SantaDetectionMeeter = 0;
     EndScreen("SANTA WAS DETECTED!");
   }
-/*  
-  HappinessMeeter -= 0.01;
-  */
+
   if (HappinessMeeter < 0) {
-    end();
+    const rndMsg = ["YOU RUINED CHRISTMAS!", "WORSE DELIVERY THAN POSTNORD!", "SADNESS OVERLOAD!", "HAPPINESS GONE!"];
+    var msg = rndMsg[Math.floor(Math.random() * rndMsg.length)];
+    EndScreen(msg);
   }
 
-  text("hej "+presentCOLdetected, 50, 100);
+//  text("hej "+presentCOLdetected, 50, 100);
   SantaIsDetected = true;
 
   
 
-
+//MARK: ====== DIFFICULTY
 
    if (ticks % 200 == 0) {
-    play("tone");
-     currentWorldSpeed += 0.2;
+    //play("tone");
+     currentWorldSpeed += 0.1;
      currentDifficulty += 0.2;
    }
 
@@ -698,14 +727,14 @@ function update() {
 function DrawMeeters() {
   
     color("black");
-    rect(0, 0, 100, 5);
-    color("green");
-    rect(0, 0, SantaDetectionMeeter, 5);
+    rect(30, 0, 50, 5);
+    color("blue");
+    rect(30, 0, SantaDetectionMeeter*0.5+1, 5);
 
     color("black");
-    rect(0, 5, 100, 5);
-    color("red");
-    rect(0, 5, HappinessMeeter, 5);
+    rect(30, 5, 50, 5);
+    color("green");
+    rect(30, 5, HappinessMeeter*0.5+1, 5);
     
   }
 
@@ -730,14 +759,14 @@ function DropAPresent() {
 function updatePresents() {
 
   // First, if present is colliding with house, deactivate it
-  if (presentCOLdetected) {
+ /* if (presentCOLdetected) {
     presentCOLdetected = false;
     // find the present that has a Y position closest to the house, witch is at G.HEIGHT - 20
     let closest = presents.reduce((prev, curr) => {
       return (Math.abs(curr.pos.y - (G.HEIGHT - 20)) < Math.abs(prev.pos.y - (G.HEIGHT - 20)) ? curr : prev);
     });
     closest.isactive = false;
-  }
+  }*/
 
   for (let i = 0; i < presents.length; i++) {
     presents[i].update();
@@ -769,7 +798,7 @@ function drawStars() {
 }
 
 function DrawBackground() {
-  color("light_black");
+  color("black");
   rect(0, G.REALGROUNDLEVEL, G.WIDTH, 10);
 }
 
@@ -811,9 +840,16 @@ function DrawFarmHouse(globalBGRCenterX, houseObject) {
   let mod = 15;
   let HPos = G.HEIGHT - 9;
 
-  color("light_red");
+  color("red");
 
   const scale = 0.5; // 50% scale
+
+  // experimenterar med en konstant som används för att kolla om huset kolliderar.
+  const collRect = {
+    pos: vec(globalBGRCenterX - 17 * scale, HPos - 21 * scale),
+    width: 34 * scale,
+    height: 20 * scale
+  }
 
   let housCollision = rect(globalBGRCenterX - 17 * scale, HPos - 21 * scale, 34 * scale, 20 * scale);
   line(globalBGRCenterX - 17 * scale, HPos - 17 * scale, globalBGRCenterX, HPos - 25 * scale, 8 * scale);
@@ -829,14 +865,47 @@ function DrawFarmHouse(globalBGRCenterX, houseObject) {
   color("light_black");
   rect(globalBGRCenterX - 3 * scale, HPos - 10 * scale, 7 * scale, 10 * scale);
 
-  if (housCollision.isColliding.char.e || housCollision.isColliding.char.f && !houseObject.GotAPresent) {
-    play("powerUp");
+  // color("black");
+  // rect(collRect.pos, collRect.width, collRect.height);
+
+  if (CheckHousePresentCollision(collRect) && !houseObject.GotAPresent) {
+    play("coin");
     houseObject.GotAPresent = true;
     HappinessMeeter += 5;
     score += 5;
-    presentCOLdetected = true;
+//    presentCOLdetected = true;
   }
 
+  // if (housCollision.isColliding.char.e || housCollision.isColliding.char.f && !houseObject.GotAPresent) {
+  //   play("coin");
+  //   houseObject.GotAPresent = true;
+  //   HappinessMeeter += 5;
+  //   score += 5;
+  //   presentCOLdetected = true;
+  // }
+
+}
+
+function CheckHousePresentCollision(collisionRect) {
+  let hasCollided = false;
+  for (let i = 0; i < presents.length; i++) {
+    if (presents[i].isactive) {
+      if (isPointInRect(presents[i].pos, collisionRect.pos, collisionRect.width, collisionRect.height)) {
+        presents[i].isactive = false;
+        hasCollided = true;
+      }
+    }
+  }
+  return hasCollided;
+}
+
+function isPointInRect(point, rectPos, rectWidth, rectHeight) {
+  return (
+    point.x >= rectPos.x &&
+    point.x <= rectPos.x + rectWidth &&
+    point.y >= rectPos.y &&
+    point.y <= rectPos.y + rectHeight
+  );
 }
 
 function DrawFlappyBirdLevel(centerPosition) {
@@ -872,6 +941,9 @@ function ResetStuff() {
   SantaDetectionMeeter = 0;
   HappinessMeeter = 100;
   score = 0;
+  presents.forEach(p => p.isactive = false);
+  Houses.forEach(h => h.activate());
+
 
   // Reset santa position
   santa.reset();
