@@ -1,8 +1,8 @@
 
-title = "";
+title = "Santa \ngets the job done!";
 
-description = `
-`;
+description = `Tap to drop gifts, hold to fly,\nhide in clouds. \nGive gifts to houses,\nand homless ppl!\n             Avoid detection!`;
+
 
 characters = [
 `
@@ -89,7 +89,15 @@ lll
  GGGG
 GGGGGG
   YY
+`,
 `
+   l
+  l  l
+llllll
+  l
+   l
+`,
+
 ];
 
 const musicMML = `
@@ -153,7 +161,7 @@ options = {
   viewSize: { x: G.WIDTH, y: G.HEIGHT },
   //isPlayingBgm: true,
   isReplayEnabled: true,
-  //  seed: 1,
+    seed: 0,
   //  isShowingScore: false,
     theme: "crt",
   //  theme: "shapeDark",
@@ -233,10 +241,22 @@ class present {
     
     if (col.isColliding.char.j || col.isColliding.char.k) {
       play("powerUp");
-      HappinessMeeter += 10;
+      HappinessMeeter += 15;
       score += 10;
-//      play("explosion");
       this.isactive = false;
+    }
+
+
+    if (col.isColliding.char.m) {      
+      this.isactive = false;
+      if (!thePlane.hasGotGift) {
+        color("black");
+        particle(this.pos, rnd(8, 11), 1.5);
+        play("powerUp");
+        HappinessMeeter += 15;
+        score += 10;
+        thePlane.hasGotGift = true;
+      }
     }
 
     if (this.pos.y > G.HEIGHT -7 && this.isactive) {
@@ -385,6 +405,39 @@ class GiftReciver {
 
 // MARK: ====== More classes like trees and stuff
 //======================================================================================
+
+
+class plane {
+  constructor() {
+    this.pos = vec(0,0);
+    this.char = "m";
+    this.speed = 1;
+    this.isactive = false;
+    this.hasGotGift = false;
+  }
+
+  activate() {
+    this.isactive = true;    
+    this.speed = rnd(.5, .9) * currentWorldSpeed;
+    this.pos = vec(G.WIDTH, rnd(20, 55));
+    this.hasGotGift = false;
+  }
+
+  update() {
+    if (!this.isactive) {
+      return;
+    }
+
+    this.pos.x -= this.speed;
+    if (this.pos.x < -5) {
+      this.isactive = false;
+    }
+    color("black");
+    return char(this.char, this.pos, { scale: {x: 3, y: 2} });
+  }
+}
+
+let thePlane = new plane();
 
 class tree {
   constructor() {
@@ -556,7 +609,7 @@ for (let i = 0; i < 3; i++) {
 }
 
 let testTrack = [];
-for (let i = 0; i < 5; i++) // Ordinarie mängd 15
+for (let i = 0; i < 6; i++) // Ordinarie mängd 15
   {
     testTrack.push(new cloud());
     //clouds.push(new cloud());
@@ -564,6 +617,8 @@ for (let i = 0; i < 5; i++) // Ordinarie mängd 15
 
 let SantaIsDetected = true;
 let presentCOLdetected = false;
+
+let GLOBAL_IsRestart = false;
 
 
 
@@ -574,12 +629,14 @@ let presentCOLdetected = false;
 //======================================================================================
 
 let TEMPGUBBE = new GiftReciver();
-
-
 let GlobalHouseOfsett = 0;
+let timeForPlaneCount = 3;
 
 function update() {
   if (!ticks) {
+    sss.setSeed(options.seed);
+
+    timeForPlaneCount = 3;
     //    sss.playMml("t120 l8 o4 cdefgab>c");
     var mmlStr = rnd() > 0.5 ? jingelBells : wishXmus;
     sss.playMml([mmlStr]);
@@ -601,23 +658,27 @@ function update() {
       cloud.activate(i * worldPhysics.cloudSteps);
     });
 
+    
     GIFTRECIVER.Activate();
-
+    
     TEMPGUBBE.Activate();
-
+    
     // Activate all snowflakes
     for (let i = 0; i < snowflakes.length; i++) {
       snowflakes[i].pos = vec(rnd(0, G.WIDTH), rnd(0, G.HEIGHT));
       snowflakes[i].activate();
     }
-
+    
     for (let i = 0; i < trees.length; i++) {
       trees[i].activate();
     }
-
+    
     //    sss.setSeed(5);
     //    sss.setVolume(0.05);
   }
+  // ============================ END OF INIT ============================
+
+
 
   color("black")
   DrawSnowflakes();
@@ -642,7 +703,8 @@ function update() {
     //   cloud.update();
     // });
     
-    
+ 
+
   if (input.isPressed) {
     btnTimer++;
     //santa.jump = worldPhysics.jump;
@@ -650,7 +712,12 @@ function update() {
   }
   color("black");
 
-  if (input.isJustReleased) {
+  if (input.isJustReleased) {    
+    if (GLOBAL_IsRestart)
+      {
+        GLOBAL_IsRestart = false;
+        return;
+      }
     if (btnTimer < btnTreshold) {
       DropAPresent();
     }
@@ -677,7 +744,10 @@ function update() {
 
   let GiftCOL = GIFTRECIVER.update();
 
+    CheckPlane();
     updatePresents();
+
+
     Houses.forEach(h => h.update());
 //    theHouse.update();
 
@@ -715,28 +785,62 @@ function update() {
     //play("tone");
      currentWorldSpeed += 0.1;
      currentDifficulty += 0.2;
+
+     if (timeForPlaneCount > 3 && !thePlane.isactive) {
+      if (rnd() > 0.3) {        
+        thePlane.activate();
+        timeForPlaneCount = 0;
+      }
+     }
+     timeForPlaneCount++;
    }
 
    //text("Diff"+difficulty, 50, 50);
+
 
 
 }
 //========================================================== END OF MAIN LOOP ======
 //MARK: ====== Draw Functions
 
-function DrawMeeters() {
-  
-    color("black");
-    rect(30, 0, 50, 5);
-    color("blue");
-    rect(30, 0, SantaDetectionMeeter*0.5+1, 5);
-
-    color("black");
-    rect(30, 5, 50, 5);
-    color("green");
-    rect(30, 5, HappinessMeeter*0.5+1, 5);
-    
+function CheckPlane() {
+  if (thePlane.isactive) {
+    var planeCol = thePlane.update();
+    if (planeCol.isColliding.char.a || planeCol.isColliding.char.b) {
+      SantaDetectionMeeter += 2;
+      play("hit");
+    }
+    // XXXXXXXXXXXXXXXX
+    /*
+    if (planeCol.isColliding.char.e || planeCol.isColliding.char.f) {
+      if (!thePlane.hasGotGift) { }
+      HappinessMeeter += 15;
+      play("powerUp");
+    }
+      */
   }
+}
+
+function DrawMeeters() {
+
+
+  color("black");
+  rect(100, 5, 50, 5);
+  color("blue");
+  rect(100, 5, SantaDetectionMeeter * 0.5 + 1, 5);
+
+  color("black");
+  rect(40, 5, 50, 5);
+  if (HappinessMeeter < 15) {
+  color("red");
+  } else if (HappinessMeeter < 50) {
+    color("yellow");
+  } else {
+    color("green");
+  }
+  rect(40, 5, HappinessMeeter * 0.5 + 1, 5);
+
+}
 
 function DrawSnowflakes() {
   for (let i = 0; i < snowflakes.length; i++) {
@@ -846,9 +950,9 @@ function DrawFarmHouse(globalBGRCenterX, houseObject) {
 
   // experimenterar med en konstant som används för att kolla om huset kolliderar.
   const collRect = {
-    pos: vec(globalBGRCenterX - 17 * scale, HPos - 21 * scale),
-    width: 34 * scale,
-    height: 20 * scale
+    pos: vec(globalBGRCenterX - 21 * scale, HPos - 25 * scale), // En mer förlåtande hitbox.
+    width: 40 * scale,
+    height: 26 * scale
   }
 
   let housCollision = rect(globalBGRCenterX - 17 * scale, HPos - 21 * scale, 34 * scale, 20 * scale);
@@ -865,13 +969,13 @@ function DrawFarmHouse(globalBGRCenterX, houseObject) {
   color("light_black");
   rect(globalBGRCenterX - 3 * scale, HPos - 10 * scale, 7 * scale, 10 * scale);
 
-  // color("black");
-  // rect(collRect.pos, collRect.width, collRect.height);
+   //color("black");
+   //rect(collRect.pos, collRect.width, collRect.height);
 
   if (CheckHousePresentCollision(collRect) && !houseObject.GotAPresent) {
     play("coin");
     houseObject.GotAPresent = true;
-    HappinessMeeter += 5;
+    HappinessMeeter += 7;
     score += 5;
 //    presentCOLdetected = true;
   }
@@ -943,13 +1047,16 @@ function ResetStuff() {
   score = 0;
   presents.forEach(p => p.isactive = false);
   Houses.forEach(h => h.activate());
-
-
+  thePlane.isactive = false;
+  thePlane.hasGotGift = false;
+  
   // Reset santa position
   santa.reset();
 }
 
 function EndScreen(content) {
+  GLOBAL_IsRestart = true;
+  sss.stopMml();
   // Calculate the width of the text each character is 6 pixels wide
   const textWidth = content.length * 6;
   // Center the text on the screen
