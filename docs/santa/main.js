@@ -472,7 +472,9 @@ class tree {
 }
 
 class house {
+  static lastSpawn = 0;
   constructor() {
+   
     this.pos = vec(0,0);
     this.isactive = false;
 //    this.myPosX = 0;
@@ -481,15 +483,21 @@ class house {
   }
   
   activate() {
-    this.isactive = true;
-    this.pos = vec(G.WIDTH+this.xMod, G.HEIGHT - 20);
+    this.isactive = true;    
+    this.pos = vec(G.WIDTH+this.xMod, G.HEIGHT - 20);    
     this.GotAPresent = false;
+    
   }
-
+  
   update() {
     if (!this.isactive) {
       this.activate();
       this.pos = vec(G.WIDTH+rnd(30,50), G.HEIGHT - 20); // this is so that the houses keep their distance
+      if (ticks < house.lastSpawn + 50) {
+        this.pos.x += 20;
+        text("XXXXX LastSpawn BLA BLA BÖA BLA BLA BLA BLA BAL BAL", 50, 60);        
+      }
+      house.lastSpawn = ticks;
       // this.pos = vec(G.WIDTH+30, G.HEIGHT - 20);
       // this.isactive = true;
       // this.GotAPresent = false;
@@ -503,6 +511,7 @@ class house {
         HappinessMeeter -= 5;
       }
     }
+   
     DrawFarmHouse(this.pos.x, this);
     color("black");
   }
@@ -609,7 +618,7 @@ for (let i = 0; i < 3; i++) {
 }
 
 let testTrack = [];
-for (let i = 0; i < 6; i++) // Ordinarie mängd 15
+for (let i = 0; i < 7; i++) // Ordinarie mängd 15 (och varit 6)
   {
     testTrack.push(new cloud());
     //clouds.push(new cloud());
@@ -781,10 +790,13 @@ function update() {
 
 //MARK: ====== DIFFICULTY
 
+  if (ticks % 800 == 0) {
+    play("tone");
+    currentWorldSpeed += 0.5;
+  }
+
    if (ticks % 200 == 0) {
-    //play("tone");
-     currentWorldSpeed += 0.1;
-     currentDifficulty += 0.2;
+     currentDifficulty += 0.1; //xxx Never used verkar det som! (2021-12-24)
 
      if (timeForPlaneCount > 3 && !thePlane.isactive) {
       if (rnd() > 0.3) {        
@@ -824,12 +836,15 @@ function CheckPlane() {
 function DrawMeeters() {
 
 
-  color("black");
+  color("light_blue");
   rect(100, 5, 50, 5);
   color("blue");
   rect(100, 5, SantaDetectionMeeter * 0.5 + 1, 5);
-
+  
   color("black");
+  text("Detection", 102, 2);
+
+  color("light_green");
   rect(40, 5, 50, 5);
   if (HappinessMeeter < 15) {
   color("red");
@@ -839,6 +854,10 @@ function DrawMeeters() {
     color("green");
   }
   rect(40, 5, HappinessMeeter * 0.5 + 1, 5);
+
+  // Write happiness under the bar
+  color("black");
+  text("Happiness", 42, 2);
 
 }
 
@@ -1042,6 +1061,7 @@ function drawCloud(centerX, centerY, cloudWidth, cloudHeight, numArcs) {
 function ResetStuff() {
   currentWorldSpeed = worldPhysics.worldSpeed;
   currentDifficulty = 1;
+  house.lastSpawn = 0;
   SantaDetectionMeeter = 0;
   HappinessMeeter = 100;
   score = 0;
